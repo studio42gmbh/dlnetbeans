@@ -113,17 +113,6 @@ public class DLSyntaxParser extends Parser
 			parser.addErrorListener(new DLParserErrorHandler());
 			parser.addParseListener(new DLSemanticParser(parserResult));
 
-			// Manuel lexer run to make sure the xact position can be retrieved
-			while (true) {
-				Token token = tokens.LT(1);
-				//System.out.println("TOKEN: " + token);
-				if (token.getType() == DLLexer.EOF) {
-					break;
-				}
-				tokens.consume();
-			}
-			tokens.seek(0);
-
 			// Process the parser rules
 			parser.data();
 

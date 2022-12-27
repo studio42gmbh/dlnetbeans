@@ -23,45 +23,75 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.completion;
+
+package de.s42.dl.netbeans.semantic;
 
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import javax.swing.text.JTextComponent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
-import org.netbeans.spi.editor.completion.CompletionProvider;
-import org.netbeans.spi.editor.completion.CompletionTask;
-import org.netbeans.spi.editor.completion.support.AsyncCompletionTask;
 
 /**
- * See https://netbeans.apache.org/tutorials/80/nbm-code-completion.html See
- * https://github.com/fredyvonvinet/ANTLR4-Plugins-for-NetBeans/blob/master/1.2.1/ANTLR4PLGNB82/src/org/nemesis/antlr/v4/netbeans/v8/grammar/code/completion/GrammarCompletionQuery.java
  *
  * @author Benjamin Schiller
  */
 @MimeRegistration(mimeType = DL_MIME_TYPE,
-	service = CompletionProvider.class)
-public class DLCompletionProvider implements CompletionProvider
+	service = DLSemanticCache.class)
+public class DLSemanticCache 
 {
-
-	private final static Logger log = LogManager.getLogger(DLCompletionProvider.class.getName());
-
-	@Override
-	public CompletionTask createTask(int queryType, JTextComponent component)
+	
+	private final static Logger log = LogManager.getLogger(DLSemanticCache.class.getName());
+	
+	protected final Map<String, Set<String>> typeNamesByKey = Collections.synchronizedMap(new HashMap<>());
+	
+	public synchronized List<String> getTypeNames(String key)
 	{
-		if (queryType != CompletionProvider.COMPLETION_QUERY_TYPE) {
-			return null;
+		assert key != null;
+		
+		//log.debug("getTypeNames", key);
+		
+		Set<String> typeNames = typeNamesByKey.get(key);		
+		
+		if (typeNames == null) {
+			return Collections.EMPTY_LIST;
 		}
-				
-		return new AsyncCompletionTask(new DLCompletionQuery(), component);
+		
+		return new ArrayList(typeNames);
+	}
+
+	public synchronized void addTypeName(String key, String typeName)
+	{
+		assert key != null;
+		assert typeName != null;
+		
+		//log.debug("addTypeName", key, typeName);
+		
+		Set<String> typeNames = typeNamesByKey.get(key);		
+		
+		if (typeNames == null) {
+			typeNames = Collections.synchronizedSortedSet(new TreeSet<>());		
+			typeNamesByKey.put(key, typeNames);
+		}
+		
+		typeNames.add(typeName);
+	}
+	
+	public synchronized void clearTypeNames(String key)
+	{
+		assert key != null;
+		
+		//log.debug("clearTypeNames", key, typeName);
+		
+		typeNamesByKey.remove(key);
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	@Override
-	public int getAutoQueryTypes(JTextComponent jtc, String string)
-	{
-		return 0;
-	}
 	//</editor-fold>
 }

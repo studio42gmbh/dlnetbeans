@@ -25,7 +25,9 @@
 //</editor-fold>
 package de.s42.dl.netbeans.completion;
 
+import de.s42.dl.netbeans.DLDataObject;
 import de.s42.dl.netbeans.completion.items.KeywordDLCompletionItem;
+import de.s42.dl.netbeans.completion.items.TypeDLCompletionItem;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import javax.swing.text.BadLocationException;
@@ -42,10 +44,13 @@ public class DLCompletionQuery extends AsyncCompletionQuery
 {
 
 	private final static Logger log = LogManager.getLogger(DLCompletionQuery.class.getName());
-
+	
 	@Override
 	protected void query(CompletionResultSet result, Document document, int caretOffset)
 	{
+		assert result != null;
+		assert document != null;
+		
 		BaseDocument baseDoc = (BaseDocument) document;
 
 		baseDoc.readLock();
@@ -55,6 +60,8 @@ public class DLCompletionQuery extends AsyncCompletionQuery
 		baseDoc.readUnlock();
 
 		KeywordDLCompletionItem.addKeywordItems(result, document, currentWord, caretOffset);
+		
+		TypeDLCompletionItem.addTypeItems(result, document, currentWord, caretOffset);
 
 		result.finish();
 	}
@@ -68,6 +75,8 @@ public class DLCompletionQuery extends AsyncCompletionQuery
 	 */
 	protected String getWordBefore(BaseDocument document, int caretOffset)
 	{
+		assert document != null;
+		
 		try {
 
 			StringBuilder result = new StringBuilder();
@@ -85,7 +94,4 @@ public class DLCompletionQuery extends AsyncCompletionQuery
 			return "";
 		}
 	}
-
-	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	//</editor-fold>
 }

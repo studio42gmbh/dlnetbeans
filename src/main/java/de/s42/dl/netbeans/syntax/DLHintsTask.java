@@ -23,12 +23,10 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-
 package de.s42.dl.netbeans.syntax;
 
 import static de.s42.dl.language.DLConstants.MIME_TYPE;
 import de.s42.dl.netbeans.syntax.hints.AbstractDLParsingHint;
-import de.s42.dl.netbeans.syntax.hints.DLParsingError;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.ArrayList;
@@ -46,7 +44,6 @@ import org.netbeans.modules.parsing.spi.TaskFactory;
 import org.netbeans.spi.editor.hints.ErrorDescription;
 import org.netbeans.spi.editor.hints.ErrorDescriptionFactory;
 import org.netbeans.spi.editor.hints.HintsController;
-import org.netbeans.spi.editor.hints.Severity;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -62,7 +59,7 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 	public void run(DLParserResult result, SchedulerEvent event)
 	{
 		assert result != null;
-		
+
 		Document document = result.getSnapshot().getSource().getDocument(false);
 		FileObject file = result.getSnapshot().getSource().getFileObject();
 		List<ErrorDescription> errors = new ArrayList<>();
@@ -75,9 +72,9 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 				hint.getStartPosition(),
 				hint.getEndPosition())
 			);
-		}		
-		
-		HintsController.setErrors(document, MIME_TYPE, errors);		
+		}
+
+		HintsController.setErrors(document, MIME_TYPE, errors);
 	}
 
 	@Override
@@ -96,14 +93,19 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 	public void cancel()
 	{
 	}
-		
-	 @MimeRegistration(mimeType=MIME_TYPE, service=TaskFactory.class)
-    public static class Factory extends TaskFactory {
 
-        @Override
-        public Collection<? extends SchedulerTask> create(Snapshot snapshot) {
-            return Collections.singleton(new DLHintsTask());
-        }
-        
-    }
+	@MimeRegistration(
+		mimeType = MIME_TYPE,
+		service = TaskFactory.class
+	)
+	public static class Factory extends TaskFactory
+	{
+
+		@Override
+		public Collection<? extends SchedulerTask> create(Snapshot snapshot)
+		{
+			return Collections.singleton(new DLHintsTask());
+		}
+
+	}
 }

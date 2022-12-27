@@ -45,6 +45,11 @@ import org.netbeans.modules.textmate.lexer.api.GrammarRegistration;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Messages({
 	"LBL_DL_LOADER=Files of DL"
@@ -125,13 +130,13 @@ public class DLDataObject extends MultiDataObject
 	private final static Logger log = LogManager.getLogger(DLDataObject.class.getName());
 
 	public static final String DL_MIME_TYPE = DLConstants.MIME_TYPE;
-
+	
 	public DLDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException
 	{
 		super(pf, loader);
 		registerEditor(DL_MIME_TYPE, false);
 	}
-
+	
 	@Override
 	protected int associateLookup()
 	{
@@ -147,9 +152,9 @@ public class DLDataObject extends MultiDataObject
 		position = 201
 	)
 	@Messages("LBL_DL_EDITOR=Source")
-	public static MultiViewEditorElement createEditor(Lookup lkp)
+	public static MultiViewEditorElement createEditor(Lookup lookup)
 	{
-		MultiViewEditorElement multiView = new MultiViewEditorElement(lkp);
+		MultiViewEditorElement multiView = new MultiViewEditorElement(lookup);
 		return multiView;
 	}
 }

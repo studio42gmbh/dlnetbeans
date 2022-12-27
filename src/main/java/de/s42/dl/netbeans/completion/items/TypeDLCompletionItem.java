@@ -25,8 +25,9 @@
 //</editor-fold>
 package de.s42.dl.netbeans.completion.items;
 
-import de.s42.dl.language.DLKeyword;
+import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.completion.DLCompletionItem;
+import de.s42.dl.netbeans.semantic.DLSemanticCache;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.Color;
@@ -34,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
 import org.openide.util.ImageUtilities;
@@ -42,29 +44,32 @@ import org.openide.util.ImageUtilities;
  *
  * @author Benjamin Schiller
  */
-public class KeywordDLCompletionItem extends DLCompletionItem
+public class TypeDLCompletionItem extends DLCompletionItem
 {
 
-	private final static Logger log = LogManager.getLogger(KeywordDLCompletionItem.class.getName());
+	private final static Logger log = LogManager.getLogger(TypeDLCompletionItem.class.getName());
 
-	protected static String KEYWORD_RIGHT_HTML_TEXT = "<i>Keyword</i>";
-	protected static Color KEYWORD_TEXT_COLOR = Color.decode("0x0000B2");
-	protected static ImageIcon KEYWORD_ICON
-		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/dl-icon-keyword.png"));
+	protected static String TYPE_RIGHT_HTML_TEXT = "<i>Type</i>";
+	protected static Color TYPE_TEXT_COLOR = Color.decode("0x000055");
+	protected static ImageIcon TYPE_ICON
+		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/type.png"));
+	
+	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
-	public KeywordDLCompletionItem(String text, Document document, int insertionOffset, int caretOffset)
+	public TypeDLCompletionItem(String text, Document document, int insertionOffset, int caretOffset)
 	{
 		super(text, document, insertionOffset, caretOffset, true);
 	}
-	
-	public static void addKeywordItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
+
+	public static void addTypeItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
-		for (String keyword : DLKeyword.getKeywords()) {
 
-			if (currentWord.isBlank() || keyword.startsWith(currentWord)) {
+		for (String type : CACHE.getTypeNames("t")) {
 
-				CompletionItem item = new KeywordDLCompletionItem(
-					keyword,
+			if (currentWord.isBlank() || type.startsWith(currentWord)) {
+
+				CompletionItem item = new TypeDLCompletionItem(
+					type,
 					document,
 					caretOffset - currentWord.length(),
 					caretOffset
@@ -73,7 +78,7 @@ public class KeywordDLCompletionItem extends DLCompletionItem
 				result.addItem(item);
 			}
 		}
-	}	
+	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
@@ -85,31 +90,31 @@ public class KeywordDLCompletionItem extends DLCompletionItem
 	@Override
 	protected String getDocumentationHtmlText()
 	{
-		return "<h2>Keyword " + KeywordDLCompletionItem.this.getText() + "</h2><p>This keyword ...</p><br><br><a href='https://github.com/studio42gmbh/dl'>Read more</a>";
+		return "<h2>Type " + TypeDLCompletionItem.this.getText() + "</h2><p>This type ...</p><br><br><a href='https://github.com/studio42gmbh/dl'>Read more</a>";
 	}
 
 	@Override
 	protected String getRightHtmlText()
 	{
-		return KEYWORD_RIGHT_HTML_TEXT;
+		return TYPE_RIGHT_HTML_TEXT;
 	}
 
 	@Override
 	protected Color getTextColor(boolean selected)
 	{
-		return KEYWORD_TEXT_COLOR;
+		return TYPE_TEXT_COLOR;
 	}
 
 	@Override
 	protected ImageIcon getIcon()
 	{
-		return KEYWORD_ICON;
+		return TYPE_ICON;
 	}
 
 	@Override
 	public int getSortPriority()
 	{
-		return 100;
+		return 90;
 	}
 	//</editor-fold>
 }

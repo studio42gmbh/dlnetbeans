@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans.semantic;
 
 import de.s42.base.strings.StringHelper;
+import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.parser.DLParser;
 import de.s42.dl.parser.DLParserBaseListener;
@@ -33,6 +34,7 @@ import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.HashSet;
 import java.util.Set;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 
 /**
  *
@@ -44,42 +46,55 @@ public class DLSemanticParser extends DLParserBaseListener
 	private final static Logger log = LogManager.getLogger(DLSemanticParser.class.getName());
 
 	protected final DLParserResult parserResult;
-	
+
 	protected final Set<String> typeNames = new HashSet<>();
+
+	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
 	public DLSemanticParser(DLParserResult parserResult)
 	{
+		assert parserResult != null;
+
 		this.parserResult = parserResult;
 	}
 
+	@Override
+	public void enterData(DLParser.DataContext ctx)
+	{
+		// Reset type cahce when starting to scan
+		CACHE.clearTypeNames("t");
+	}
+	
 	@Override
 	public void exitTypeDefinition(DLParser.TypeDefinitionContext ctx)
 	{
 		assert ctx != null;
 
 		String typeName = ctx.typeDefinitionName().getText();
-		
+
 		// Error: Dont allow double definitions
 		if (!typeNames.add(typeName)) {
-			parserResult.addError("Type " + typeName + " is already defined",ctx.typeDefinitionName().getStart());
+			parserResult.addError("Type " + typeName + " is already defined", ctx.typeDefinitionName().getStart());
 		}
-		
+
 		// Warning: Types should start with an uppercase letter
 		if (StringHelper.isLowerCaseFirst(typeName)) {
-			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter",ctx.typeDefinitionName().getStart());
+			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter", ctx.typeDefinitionName().getStart());
 		}
+
+		CACHE.addTypeName("t", typeName);
 	}
 
 	@Override
 	public void exitTypeIdentifier(DLParser.TypeIdentifierContext ctx)
 	{
 		assert ctx != null;
-		
+
 		String typeName = ctx.getText();
 
 		// Error: Type must be defined in this context
 		if (!typeNames.contains(typeName)) {
-			parserResult.addError("Type " + typeName + " is not defined",ctx.getStart());
+			parserResult.addError("Type " + typeName + " is not defined", ctx.getStart());
 		}
 	}
 }
