@@ -49,20 +49,24 @@ public class DLSemanticParser extends DLParserBaseListener
 
 	protected final Set<String> typeNames = new HashSet<>();
 
-	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
+	protected final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
+	
+	protected final String cacheKey;
 
 	public DLSemanticParser(DLParserResult parserResult)
 	{
 		assert parserResult != null;
 
 		this.parserResult = parserResult;
+		
+		cacheKey = parserResult.getSnapshot().getSource().getFileObject().getPath();
 	}
 
 	@Override
 	public void enterData(DLParser.DataContext ctx)
 	{
 		// Reset type cahce when starting to scan
-		CACHE.clearTypeNames("t");
+		CACHE.clearTypeNames(cacheKey);
 	}
 	
 	@Override
@@ -81,8 +85,8 @@ public class DLSemanticParser extends DLParserBaseListener
 		if (StringHelper.isLowerCaseFirst(typeName)) {
 			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter", ctx.typeDefinitionName().getStart());
 		}
-
-		CACHE.addTypeName("t", typeName);
+		
+		CACHE.addTypeName(cacheKey, typeName);
 	}
 
 	@Override

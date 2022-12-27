@@ -36,6 +36,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
+import org.netbeans.modules.parsing.api.Source;
 import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
 import org.openide.util.ImageUtilities;
@@ -53,7 +54,7 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	protected static Color TYPE_TEXT_COLOR = Color.decode("0x000055");
 	protected static ImageIcon TYPE_ICON
 		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/type.png"));
-	
+
 	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
 	public TypeDLCompletionItem(String text, Document document, int insertionOffset, int caretOffset)
@@ -63,8 +64,11 @@ public class TypeDLCompletionItem extends DLCompletionItem
 
 	public static void addTypeItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
+		Source source = Source.create(document);
 
-		for (String type : CACHE.getTypeNames("t")) {
+		String cacheKey = source.getFileObject().getPath();
+
+		for (String type : CACHE.getTypeNames(cacheKey)) {
 
 			if (currentWord.isBlank() || type.startsWith(currentWord)) {
 

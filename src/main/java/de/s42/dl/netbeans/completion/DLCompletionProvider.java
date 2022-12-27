@@ -35,8 +35,7 @@ import org.netbeans.spi.editor.completion.CompletionTask;
 import org.netbeans.spi.editor.completion.support.AsyncCompletionTask;
 
 /**
- * See https://netbeans.apache.org/tutorials/80/nbm-code-completion.html See
- * https://github.com/fredyvonvinet/ANTLR4-Plugins-for-NetBeans/blob/master/1.2.1/ANTLR4PLGNB82/src/org/nemesis/antlr/v4/netbeans/v8/grammar/code/completion/GrammarCompletionQuery.java
+ * See https://netbeans.apache.org/tutorials/80/nbm-code-completion.html
  *
  * @author Benjamin Schiller
  */
@@ -53,10 +52,10 @@ public class DLCompletionProvider implements CompletionProvider
 		if (queryType != CompletionProvider.COMPLETION_QUERY_TYPE) {
 			return null;
 		}
-				
+		
 		return new AsyncCompletionTask(new DLCompletionQuery(), component);
 	}
-
+	
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
 	public int getAutoQueryTypes(JTextComponent jtc, String string)

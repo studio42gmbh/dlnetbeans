@@ -25,7 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.completion;
 
-import de.s42.dl.netbeans.DLDataObject;
 import de.s42.dl.netbeans.completion.items.KeywordDLCompletionItem;
 import de.s42.dl.netbeans.completion.items.TypeDLCompletionItem;
 import de.s42.log.LogManager;
