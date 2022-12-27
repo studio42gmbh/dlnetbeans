@@ -1,0 +1,125 @@
+{
+  "fileTypes": [
+    "dl"
+  ],
+  "name": "textdl",
+  "patterns": [
+    {
+      "include": "#main"
+    }
+  ],
+  "scopeName": "source.textdl",
+  "uuid": "",
+  "repository": {
+    "main": {
+      "patterns": [
+        {
+          "include": "#multi_line_comment"
+        },
+        {
+          "match": "(//.*)",
+          "name": "comment.textdl"
+        },
+        {
+          "match": "(\\b(new|copy|scope|package|module|namespace|define|undef|in|contained|and|or|not|nand|xor|volatile|atomic|union|struct|template|class|interface|implements|contract|concept|if|private|this|throw|else|import|public|protected|throws|break|return|case|static|try|catch|void|null|lambda|do|while|for|default|instanceof|assert|use|unuse|call|clone|select|when|switch|distinct)\\b)",
+          "name": "invalid.textdl"
+        },
+        {
+          "match": "(\\b(annotation|type|extends|contains|extern|require|enum|abstract|alias|final|pragma|declare|true|false)\\b)",
+          "name": "keyword.textdl"
+        },
+        {
+          "include": "#numeric"
+        },
+        {
+          "begin": "(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.textdl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#main__1"
+            }
+          ],
+          "end": "(\\})",
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.textdl"
+            }
+          }
+        },
+        {
+          "match": "(\\$|\\.|;|,|:|\\(|\\)|\\-|&|\\||\\?|=|!|\\+|\\*|<|>|/)",
+          "name": "punctuation.textdl"
+        },
+        {
+          "match": "(\\b[a-zA-Z_\\x{0023}][a-zA-Z0-9\\-_\\x{0023}\\x{0024}]*)",
+          "name": "variable.textdl"
+        },
+        {
+          "match": "(@[a-zA-Z_\\x{0023}][a-zA-Z0-9\\-_\\x{0023}\\x{0024}]*)",
+          "name": "variable.annotation.textdl"
+        },
+        {
+          "match": "(\\\"\\\")",
+          "name": "string.textdl"
+        },
+        {
+          "begin": "(\\\")",
+          "beginCaptures": {
+            "1": {
+              "name": "string.textdl"
+            }
+          },
+          "contentName": "string.textdl",
+          "end": "([^\\x{005c}]\\\")",
+          "endCaptures": {
+            "1": {
+              "name": "string.textdl"
+            }
+          }
+        },
+        {
+          "match": "([^\\s])",
+          "name": "invalid.textdl"
+        }
+      ]
+    },
+    "main__1": {
+      "patterns": [
+        {
+          "include": "#main"
+        }
+      ]
+    },
+    "multi_line_comment": {
+      "patterns": [
+        {
+          "begin": "(/\\*)",
+          "beginCaptures": {
+            "1": {
+              "name": "comment.textdl"
+            }
+          },
+          "contentName": "comment.textdl",
+          "end": "(\\*/)",
+          "endCaptures": {
+            "1": {
+              "name": "comment.textdl"
+            }
+          }
+        }
+      ]
+    },
+    "numeric": {
+      "patterns": [
+        {
+          "match": "([-]?(([0][xXbB][0-9a-fA-F]*)|(\\d+([\\.]?\\d+)?)))",
+          "name": "constant.numeric.textdl"
+        }
+      ]
+    }
+  }
+}

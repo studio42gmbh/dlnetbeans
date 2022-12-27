@@ -1,0 +1,31 @@
+// <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+/*
+ * For further infos on DL read https://github.com/studio42gmbh/dl/wiki
+ */
+// </editor-fold>
+
+type NewType extends Object
+{
+  int x @required : 42;
+}
+
+NewType t @export(t : 4, y : "gff") { 
+  x : 21;
+}
+
+int x :	42;
+String name : "";
+double score : -3.14;
+boolean awake :	true;
+
+// ok das ist mal nice!
+annotation contains extern false;
+
+int x : $ref.name;
+
+sgs x : 0x4;
+
+type Loko extends Object contains Object
+{
+	int x : $a | $b & $c & $d * 3 - $e + 6 & $f / 6;
+}

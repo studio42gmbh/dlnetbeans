@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+	<folder name="Editors">
+		<folder name="text">
+			<folder name="dl">
+				<folder name="Preferences">
+                    <folder name="Defaults">
+                        <file name="de-s42-dl-netbeans-xmlPreferences.xml" url="preferences.xml"/>
+                    </folder>
+                </folder>      				
+			</folder>
+		</folder>
+	</folder>
+	<folder name="OptionsDialog">
+        <folder name="PreviewExamples">
+            <folder name="text">
+                <file name="dl" url="data.dl"/>
+            </folder>
+        </folder>
+        <folder name="Editor">
+            <folder name="Formatting">
+                <folder name="text">
+                    <folder name="dl">
+                        <file name="TabsAndIndents.instance">
+                            <attr name="instanceOf" stringvalue="org.netbeans.modules.options.editor.spi.PreferencesCustomizer$Factory"/>
+                            <attr name="instanceCreate" methodvalue="org.netbeans.modules.options.editor.spi.CustomizerFactories.createDefaultTabsAndIndentsCustomizerFactory"/>
+                            <attr name="previewTextFile" stringvalue="de/s42/dl/netbeans/data.dl"/>
+                            <attr name="position" intvalue="100"/>
+                        </file>
+                    </folder>
+                </folder>
+            </folder>
+        </folder>
+    </folder>	
+</filesystem>

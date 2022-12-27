@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Implementation-Version: 16
+OpenIDE-Module-Localizing-Bundle: de/s42/dl/netbeans/Bundle.properties
+OpenIDE-Module-Layer: de/s42/dl/netbeans/layer.xml
