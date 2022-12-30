@@ -50,7 +50,7 @@ public class DLSemanticParser extends DLParserBaseListener
 	protected final Set<String> typeNames = new HashSet<>();
 
 	protected final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
-	
+
 	protected final String cacheKey;
 
 	public DLSemanticParser(DLParserResult parserResult)
@@ -58,34 +58,44 @@ public class DLSemanticParser extends DLParserBaseListener
 		assert parserResult != null;
 
 		this.parserResult = parserResult;
-		
+
 		cacheKey = parserResult.getSnapshot().getSource().getFileObject().getPath();
 	}
 
 	@Override
 	public void enterData(DLParser.DataContext ctx)
 	{
-		// Reset type cahce when starting to scan
+		// Reset type cache when starting to scan
 		CACHE.clearTypeNames(cacheKey);
 	}
-	
+
 	@Override
 	public void exitTypeDefinition(DLParser.TypeDefinitionContext ctx)
 	{
 		assert ctx != null;
 
 		String typeName = ctx.typeDefinitionName().getText();
-
+		String simpleTypeName;
+		String typePath;
+		int dotIndex = typeName.lastIndexOf('.');
+		if (dotIndex > -1) {
+			simpleTypeName = typeName.substring(dotIndex+1);
+			typePath = typeName.substring(0, dotIndex);
+		} else {
+			simpleTypeName = typeName;
+			typePath = "";
+		}
+		
 		// Error: Dont allow double definitions
 		if (!typeNames.add(typeName)) {
 			parserResult.addError("Type " + typeName + " is already defined", ctx.typeDefinitionName().getStart());
 		}
 
-		// Warning: Types should start with an uppercase letter
-		if (StringHelper.isLowerCaseFirst(typeName)) {
+		// Warning: Types simple name should start with an uppercase letter
+		if (StringHelper.isLowerCaseFirst(simpleTypeName)) {
 			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter", ctx.typeDefinitionName().getStart());
 		}
-		
+
 		CACHE.addTypeName(cacheKey, typeName);
 	}
 
