@@ -26,8 +26,6 @@
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLModule;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -39,8 +37,6 @@ import org.openide.util.ImageUtilities;
  */
 public class ModuleNode extends AbstractNode
 {
-
-	private final static Logger log = LogManager.getLogger(ModuleNode.class.getName());
 
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/module.png"); // NOI18N
 
@@ -58,8 +54,6 @@ public class ModuleNode extends AbstractNode
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	
-	
 	@Override
 	public Image getIcon(int type)
 	{

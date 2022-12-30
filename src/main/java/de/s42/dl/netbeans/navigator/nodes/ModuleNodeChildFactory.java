@@ -56,8 +56,13 @@ public class ModuleNodeChildFactory extends ChildFactory<Object>
 	@Override
 	protected boolean createKeys(List<Object> list)
 	{
+		list.addAll(module.getChildren().stream().filter((child) -> {
+			return child instanceof DLModule;
+		}).toList());
 		list.addAll(module.getDefinedTypes());
-		list.addAll(module.getChildren());
+		list.addAll(module.getChildren().stream().filter((child) -> {
+			return !(child instanceof DLModule);
+		}).toList());
 		list.addAll(module.getAttributes().entrySet());
 
 		return true;
@@ -68,6 +73,10 @@ public class ModuleNodeChildFactory extends ChildFactory<Object>
 	{
 		if (entity instanceof DLType) {
 			return new TypeNode((DLType) entity);
+		}
+		
+		if (entity instanceof DLModule) {
+			return new ModuleNode((DLModule) entity);
 		}
 
 		if (entity instanceof DLInstance) {

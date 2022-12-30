@@ -55,7 +55,7 @@ public class DLSemanticCache
 	{
 		assert key != null;
 		
-		log.debug("getTypeNames", key);
+		//log.debug("getTypeNames", key);
 		
 		Set<String> typeNames = typeNamesByKey.get(key);		
 		
@@ -71,7 +71,7 @@ public class DLSemanticCache
 		assert key != null;
 		assert typeName != null;
 		
-		log.debug("addTypeName", key, typeName);
+		//log.debug("addTypeName", key, typeName);
 		
 		Set<String> typeNames = typeNamesByKey.get(key);		
 		
@@ -87,7 +87,7 @@ public class DLSemanticCache
 	{
 		assert key != null;
 		
-		log.debug("clearTypeNames", key);
+		//log.debug("clearTypeNames", key);
 		
 		typeNamesByKey.remove(key);
 	}

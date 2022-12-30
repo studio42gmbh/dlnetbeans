@@ -23,7 +23,6 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLAttribute;
@@ -38,33 +37,40 @@ import org.openide.nodes.Node;
  *
  * @author Benjamin Schiller
  */
-public class TypeNodeChildFactory extends ChildFactory<DLAttribute>
+public class TypeNodeChildFactory extends ChildFactory<Object>
 {
 
 	private final static Logger log = LogManager.getLogger(TypeNodeChildFactory.class.getName());
-	
+
 	protected final DLType type;
-	
+
 	public TypeNodeChildFactory(DLType type)
 	{
 		assert type != null;
-		
+
 		this.type = type;
 	}
-	
+
 	@Override
-	protected boolean createKeys(List<DLAttribute> list)
+	protected boolean createKeys(List<Object> list)
 	{
+		list.addAll(type.getParents());
 		list.addAll(type.getOwnAttributes());
-		
+
 		return true;
 	}
 
 	@Override
-	protected Node createNodeForKey(DLAttribute attribute)
+	protected Node createNodeForKey(Object entry)
 	{
-		return new AttributeNode(attribute);
+		if (entry instanceof DLAttribute) {		
+			return new AttributeNode((DLAttribute)entry);
+		}
+		
+		if (entry instanceof DLType) {		
+			return new TypeNode((DLType)entry);
+		}
+		
+		return null;		
 	}
-	
-	
 }

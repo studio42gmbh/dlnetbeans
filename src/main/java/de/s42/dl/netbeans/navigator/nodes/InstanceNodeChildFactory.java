@@ -31,6 +31,7 @@ import de.s42.dl.DLInstance;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.List;
+import java.util.Map;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 
@@ -38,7 +39,7 @@ import org.openide.nodes.Node;
  *
  * @author Benjamin Schiller
  */
-public class InstanceNodeChildFactory extends ChildFactory<DLEntity>
+public class InstanceNodeChildFactory extends ChildFactory<Object>
 {
 
 	private final static Logger log = LogManager.getLogger(InstanceNodeChildFactory.class.getName());
@@ -53,23 +54,37 @@ public class InstanceNodeChildFactory extends ChildFactory<DLEntity>
 	}
 
 	@Override
-	protected boolean createKeys(List<DLEntity> list)
+	protected boolean createKeys(List<Object> list)
 	{
-		list.addAll(instance.getType().getAttributes());
+		//list.addAll(instance.getType().getAttributes());
 		list.addAll(instance.getChildren());
-
+		list.addAll(instance.getAttributes().entrySet());
+		
 		return true;
 	}
 
 	@Override
-	protected Node createNodeForKey(DLEntity entity)
+	protected Node createNodeForKey(Object entity)
 	{
 		if (entity instanceof DLInstance) {
 			return new InstanceNode((DLInstance) entity);
-		} else if (entity instanceof DLAttribute) {
+		} 
+		
+		if (entity instanceof DLAttribute) {
+			return new AttributeNode((DLAttribute) entity);
+		} 
+		
+		if (entity instanceof String) {
 			return new AttributeNode((DLAttribute) entity);
 		}
-
+		
+		if (entity instanceof Map.Entry) {
+			return new ValueNode(
+				(String) ((Map.Entry) entity).getKey(),
+				((Map.Entry) entity).getValue()
+			);
+		}
+		
 		return null;
 	}
 }

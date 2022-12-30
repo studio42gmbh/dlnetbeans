@@ -94,7 +94,7 @@ public class DLSyntaxParser extends Parser
 	@Override
 	public void parse(Snapshot snapshot, Task task, SourceModificationEvent event) throws ParseException
 	{
-		//log.debug("parse", snapshot.getSource().getDocument(false));
+		//log.debug("parse", snapshot.getSource().getFileObject().getName());
 
 		parserResult = new DLParserResult(snapshot);
 		FileObject fileObject = snapshot.getSource().getFileObject();
@@ -153,6 +153,8 @@ public class DLSyntaxParser extends Parser
 	@Override
 	public Result getResult(Task task) throws ParseException
 	{
+		//log.debug("getResult", parserResult.getSnapshot().getSource().getFileObject().getName());
+		
 		return parserResult;
 	}
 

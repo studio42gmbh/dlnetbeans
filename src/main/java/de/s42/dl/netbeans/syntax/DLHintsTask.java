@@ -62,10 +62,10 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 
 		Document document = result.getSnapshot().getSource().getDocument(false);
 		FileObject file = result.getSnapshot().getSource().getFileObject();
-		List<ErrorDescription> errors = new ArrayList<>();
+		List<ErrorDescription> hints = new ArrayList<>();
 
 		for (AbstractDLParsingHint hint : result.getDiagnostics()) {
-			errors.add(ErrorDescriptionFactory.createErrorDescription(
+			hints.add(ErrorDescriptionFactory.createErrorDescription(
 				hint.getHintSeverity(),
 				hint.getDescription(),
 				file,
@@ -74,13 +74,13 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 			);
 		}
 
-		HintsController.setErrors(document, MIME_TYPE, errors);
+		HintsController.setErrors(document, MIME_TYPE + "-hints", hints);
 	}
 
 	@Override
 	public int getPriority()
 	{
-		return 200;
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
@@ -104,6 +104,7 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 		@Override
 		public Collection<? extends SchedulerTask> create(Snapshot snapshot)
 		{
+			//log.warn("create", snapshot.getSource().getFileObject().getName());
 			return Collections.singleton(new DLHintsTask());
 		}
 

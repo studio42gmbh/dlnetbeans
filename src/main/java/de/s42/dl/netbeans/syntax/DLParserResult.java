@@ -107,7 +107,7 @@ public class DLParserResult extends ParserResult
 	@Override
 	protected void invalidate()
 	{
-		hints.clear();
+		// Do nothing here -> might get called and afterwards it will be used again to render hints ... seems to be an issue with NB16 atm
 	}
 
 	@Override

@@ -29,11 +29,13 @@ import de.s42.base.strings.StringHelper;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.parser.DLParser;
+import de.s42.dl.parser.DLParser.AliasNameContext;
 import de.s42.dl.parser.DLParserBaseListener;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.HashSet;
 import java.util.Set;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 
 /**
@@ -68,13 +70,16 @@ public class DLSemanticParser extends DLParserBaseListener
 		// Reset type cache when starting to scan
 		CACHE.clearTypeNames(cacheKey);
 	}
-
-	@Override
-	public void exitTypeDefinition(DLParser.TypeDefinitionContext ctx)
+	
+	protected void addTypeDefinition(String cacheKey, String typeName, ParserRuleContext context)
 	{
-		assert ctx != null;
-
-		String typeName = ctx.typeDefinitionName().getText();
+		// Error: Dont allow double definitions
+		if (!typeNames.add(typeName)) {
+			parserResult.addError("Type " + typeName + " is already defined", context.getStart());
+		}
+		
+		CACHE.addTypeName(cacheKey, typeName);
+		
 		String simpleTypeName;
 		String typePath;
 		int dotIndex = typeName.lastIndexOf('.');
@@ -86,17 +91,27 @@ public class DLSemanticParser extends DLParserBaseListener
 			typePath = "";
 		}
 		
-		// Error: Dont allow double definitions
-		if (!typeNames.add(typeName)) {
-			parserResult.addError("Type " + typeName + " is already defined", ctx.typeDefinitionName().getStart());
-		}
-
 		// Warning: Types simple name should start with an uppercase letter
 		if (StringHelper.isLowerCaseFirst(simpleTypeName)) {
-			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter", ctx.typeDefinitionName().getStart());
-		}
+			parserResult.addWarning("Type " + typeName + " start with a lowercase letter but types should always start with an uppercase letter", context.getStart());
+		}		
+	}	
 
-		CACHE.addTypeName(cacheKey, typeName);
+	@Override
+	public void exitTypeDefinition(DLParser.TypeDefinitionContext ctx)
+	{
+		assert ctx != null;
+
+		String typeName = ctx.typeDefinitionName().getText();
+		
+		addTypeDefinition(cacheKey, typeName, ctx.typeDefinitionName());
+		
+		// Add alias typenames
+		if (ctx.aliases() != null) {
+			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
+				addTypeDefinition(cacheKey, aliasCtx.getText(), aliasCtx);
+			}
+		}
 	}
 
 	@Override
