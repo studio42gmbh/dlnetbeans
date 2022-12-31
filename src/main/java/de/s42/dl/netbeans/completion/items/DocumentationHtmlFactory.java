@@ -45,13 +45,12 @@ public class DocumentationHtmlFactory
 	public static URL createDocumentationUrl(DLKeyword keyword)
 	{
 		try {
-			return new URL("https://github.com/studio42gmbh/dl/wiki/1.2-Keywords");
+			return new URL("https://github.com/studio42gmbh/dl/wiki/1.2-Keywords#" + keyword.keyword);
 		} catch (MalformedURLException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
 
-	
 	public static URL createDocumentationUrl(Type type)
 	{
 		try {
@@ -70,7 +69,6 @@ public class DocumentationHtmlFactory
 		return builder.toString();
 	}
 
-	
 	public static String createRightTextHtml(Type type)
 	{
 		assert type != null;
@@ -94,35 +92,48 @@ public class DocumentationHtmlFactory
 
 		builder
 			.append("<h2>Keyword ")
-			.append(keyword.keyword.toString())
-			.append("</h2><p><a href='https://github.com/studio42gmbh/dl/wiki/1.2-Keywords'>Read more about keywords in DL</a>");
+			.append(keyword.keyword)
+			.append("</h2>")
+			.append("<p><a href='https://github.com/studio42gmbh/dl/wiki/1.2-Keywords#")
+			.append(keyword.keyword)
+			.append("'>Read more about keywords in DL</a>");
 
 		return builder.toString();
 	}
 	
-
 	public static String createDocumentationHtml(Type type)
 	{
 		assert type != null;
 
 		StringBuilder builder = new StringBuilder();
+		
+		String typeKindDisplay = (type instanceof EnumType) ? "Enum" : "Type";
 
 		builder
-			.append("<h2>Type ")
+			.append("<h2>")
+			.append(typeKindDisplay)
+			.append(" ")
 			.append(type.getIdentifier())
-			.append(" (")
+			.append("</h2>")
+			.append("<p>Defined in module <b>")
+			.append(type.getModuleId())
+			.append("</b> (")
 			.append(type.getStartLine())
 			.append(":")
 			.append(type.getStartPosition())
-			.append(")")
-			.append("</h2><p><a href='https://github.com/studio42gmbh/dl/wiki/2-Types'>Read more about types in DL</a>");
-
+			.append(")</p>");
+		
 		// Append alias info
 		if (type.getAliasOf() != null) {
 			builder
-				.append(" alias of ")
-				.append(type.getAliasOf().getIdentifier());
+				.append("<p>Is an alias of <b>")
+				.append(type.getAliasOf().getIdentifier())
+				.append("</b></p>");
 		}
+		
+		builder
+			.append("<p><a href='https://github.com/studio42gmbh/dl/wiki/2-Types'>Read more about types in DL</a>");
+
 
 		return builder.toString();
 	}

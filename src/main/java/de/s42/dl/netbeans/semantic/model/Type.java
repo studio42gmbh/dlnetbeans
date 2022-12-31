@@ -50,17 +50,19 @@ public class Type extends Entry
 		aliasOf = null;
 	}
 
-	public Type(String typeName, ParserRuleContext context)
+	public Type(String typeName, ParserRuleContext context, String moduleId)
 	{
-		this(typeName, context, null);
+		this(typeName, context, moduleId, null);
 	}
 
-	public Type(String typeName, ParserRuleContext context, Type aliasOf)
+	public Type(String typeName, ParserRuleContext context, String moduleId, Type aliasOf)
 	{
 		assert typeName != null;
 		assert context != null;
+		assert moduleId != null;
 
 		this.aliasOf = aliasOf;
+		this.moduleId = moduleId;
 		identifier = typeName;
 		startLine = context.start.getLine();
 		startPosition = context.start.getCharPositionInLine() + 1;

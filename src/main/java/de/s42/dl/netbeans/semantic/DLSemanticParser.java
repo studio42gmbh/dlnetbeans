@@ -27,7 +27,7 @@ package de.s42.dl.netbeans.semantic;
 
 import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLCore;
-import de.s42.dl.core.BaseDLCore;
+import de.s42.dl.core.DefaultCore;
 import de.s42.dl.core.resolvers.FileCoreResolver;
 import de.s42.dl.core.resolvers.LibraryCoreResolver;
 import de.s42.dl.exceptions.InvalidModule;
@@ -47,6 +47,7 @@ import de.s42.dl.parser.DLParserBaseListener;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 
@@ -64,11 +65,17 @@ public class DLSemanticParser extends DLParserBaseListener
 	protected final DLParserResult parserResult;
 	protected final String cacheKey;
 	protected final ParserRuleContext overrideContext;
+	protected final DLCore core;
+	protected final String moduleId;
 
-	public DLSemanticParser(DLParserResult parserResult, ParserRuleContext overrideContext)
+	public DLSemanticParser(DLParserResult parserResult, ParserRuleContext overrideContext, DLCore core, String moduleId)
 	{
 		assert parserResult != null;
+		assert core != null;
+		assert moduleId != null;
 
+		this.core = core;
+		this.moduleId = moduleId;
 		this.parserResult = parserResult;
 		this.overrideContext = overrideContext;
 
@@ -104,7 +111,7 @@ public class DLSemanticParser extends DLParserBaseListener
 			parserResult.addError("Type " + typeName + " is already defined", context);
 		}
 
-		Type type = new Type(typeName, getOverridableContext(context), aliasOf);
+		Type type = new Type(typeName, getOverridableContext(context), moduleId, aliasOf);
 
 		CACHE.addType(cacheKey, type);
 
@@ -128,7 +135,7 @@ public class DLSemanticParser extends DLParserBaseListener
 			parserResult.addError("Enum " + enumName + " is already defined", context);
 		}
 
-		EnumType enumType = new EnumType(enumName, getOverridableContext(context), aliasOf);
+		EnumType enumType = new EnumType(enumName, getOverridableContext(context), moduleId, aliasOf);
 
 		CACHE.addType(cacheKey, enumType);
 
@@ -158,8 +165,6 @@ public class DLSemanticParser extends DLParserBaseListener
 			}
 		}
 	}
-	
-	
 
 	@Override
 	public void exitTypeHeader(TypeHeaderContext ctx)
@@ -210,39 +215,56 @@ public class DLSemanticParser extends DLParserBaseListener
 		assert ctx != null;
 
 		// Retrieve the module id
-		String moduleId = ctx.requireModule().getText();
+		String requiredModuleId = ctx.requireModule().getText();
 
 		// This core is created to have an anchor for the resolvers
-		DLCore core = new BaseDLCore();
-		LibraryCoreResolver libResolver = new LibraryCoreResolver(core);
+		LibraryCoreResolver libResolver = (LibraryCoreResolver) DefaultCore.LIBRARY_RESOLVER;
+		FileCoreResolver fileResolver = (FileCoreResolver) DefaultCore.FILE_RESOLVER;
 
-		// @todo Add resolvment for file resolver
-		FileCoreResolver fileResolver = new FileCoreResolver(core);
+		Path oldLocalPath = fileResolver.getLocalPathInCore(core);
+		fileResolver.setLocalPathInCore(core, Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
 
 		// @todo Is there a more generic way to make sure the according resolvers are used?
 		// Try to resolve module with the library resolver
-		if (libResolver.canParse(moduleId)) {
+		if (libResolver.canParse(core, requiredModuleId, null)) {
 
 			try {
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
+				String resolvedModuleId = libResolver.resolveModuleId(core, requiredModuleId);
 
 				// @todo merge the results with according prefix into this result
-				DLSyntaxParser.parseContent(result, libResolver.getContent(moduleId), getOverridableContext(ctx));
+				DLSyntaxParser.parseContent(
+					result,
+					resolvedModuleId,
+					libResolver.getContent(core, requiredModuleId),
+					getOverridableContext(ctx),
+					core
+				);
 			} catch (InvalidModule | IOException ex) {
 				parserResult.addError("Library module " + ctx.requireModule().getText() + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);
 			}
-		} else if (fileResolver.canParse(moduleId)) {
+		} else if (fileResolver.canParse(core, requiredModuleId, null)) {
 
+			// Prepare core to allow relative path lookups
 			try {
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
+				String resolvedModuleId = fileResolver.resolveModuleId(core, requiredModuleId);
 
 				// @todo merge the results with according prefix into this result
-				DLSyntaxParser.parseContent(result, fileResolver.getContent(moduleId), getOverridableContext(ctx));
+				DLSyntaxParser.parseContent(
+					result,
+					resolvedModuleId,
+					fileResolver.getContent(core, requiredModuleId),
+					getOverridableContext(ctx),
+					core
+				);
 			} catch (InvalidModule | IOException ex) {
 				parserResult.addError("File module " + ctx.requireModule().getText() + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);
 			}
+
+			fileResolver.setLocalPathInCore(core, oldLocalPath);
 		} else {
 			parserResult.addError("Resolver module " + ctx.requireModule().getText() + " could not get resolved", ctx);
 		}

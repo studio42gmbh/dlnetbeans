@@ -25,6 +25,8 @@
 //</editor-fold>
 package de.s42.dl.netbeans.syntax;
 
+import de.s42.dl.DLCore;
+import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.exceptions.ReservedKeyword;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.semantic.DLSemanticCache;
@@ -34,6 +36,7 @@ import de.s42.dl.parser.DLLexer;
 import de.s42.dl.parser.DLParser;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.nio.file.Path;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.StyledDocument;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -65,15 +68,11 @@ public class DLSyntaxParser extends Parser
 
 	private DLParserResult parserResult;
 
-	public static void parseContent(DLParserResult result, String content)
-	{
-		parseContent(result, content, null);
-	}
-
-	public static void parseContent(DLParserResult result, String content, ParserRuleContext overrideContext)
+	public static void parseContent(DLParserResult result, String moduleId, String content, ParserRuleContext overrideContext, DLCore core)
 	{
 		assert result != null;
 		assert content != null;
+		assert core != null;
 
 		// Setup lexer
 		DLLexer lexer = new DLLexer(CharStreams.fromString(content));
@@ -83,7 +82,7 @@ public class DLSyntaxParser extends Parser
 		lexer.addErrorListener(new DLParserErrorHandler(result));
 		parser.removeErrorListeners();
 		parser.addErrorListener(new DLParserErrorHandler(result));
-		parser.addParseListener(new DLSemanticParser(result, overrideContext));
+		parser.addParseListener(new DLSemanticParser(result, overrideContext, core, moduleId));
 
 		// Process the parser rules
 		parser.data();
@@ -144,9 +143,11 @@ public class DLSyntaxParser extends Parser
 
 		try {
 
+			DLCore core = new BaseDLCore(true);
 			String dlContent = String.valueOf(snapshot.getText());
+			String moduleId = Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
 
-			parseContent(parserResult, dlContent);
+			parseContent(parserResult, moduleId, dlContent, null, core);
 
 		} // Special handling for reserved keyword - this might to be changed in DL parsing as this induces issues -> Should add errors but not throw
 		catch (ReservedKeyword ex) {

@@ -45,6 +45,7 @@ public abstract class Entry
 	protected int endPosition;
 	protected int endOffset;
 	protected String identifier;
+	protected String moduleId;
 	
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	public String getIdentifier()
@@ -115,6 +116,16 @@ public abstract class Entry
 	public void setEndOffset(int endOffset)
 	{
 		this.endOffset = endOffset;
+	}
+
+	public String getModuleId()
+	{
+		return moduleId;
+	}
+
+	public void setModuleId(String moduleId)
+	{
+		this.moduleId = moduleId;
 	}
 	//</editor-fold>
 }

@@ -36,7 +36,6 @@ import static de.s42.dl.netbeans.navigator.nodes.WaitNode.getWaitNode;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.BorderLayout;
-import java.io.IOException;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.openide.explorer.ExplorerManager;
@@ -97,23 +96,23 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 
 			try {
 				// Parse the DL and create module as root
-				//log.start("DLNNavigatorPanelComponent.showContentNode");
-				String dlContent = dataObject.getPrimaryFile().asText();
+				log.start("DLNNavigatorPanelComponent.showContentNode");
 				BaseDLCore core = new BaseDLCore(true);
 				DefaultCore.loadResolvers(core);
 				DefaultCore.loadAnnotations(core);
 				DefaultCore.loadExports(core);
 				DefaultCore.loadPragmas(core);
-				final DLModule module = core.parse(dataObject.getPrimaryFile().getName(), dlContent);
+				final DLModule module = core.parse(dataObject.getPrimaryFile().getPath());
+				log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
+
 				final ModuleNode root = new ModuleNode(module);
-				//log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
 
 				// Update inside UI thread
 				SwingUtilities.invokeLater(() -> {
 					elementView.setRootVisible(true);
 					manager.setRootContext(root);
 				});
-			} catch (DLException | IOException | RuntimeException ex) {
+			} catch (DLException | RuntimeException ex) {
 
 				showErrorNode(ex);
 				//log.stopDebug("DLNNavigatorPanelComponent.showContentNode");

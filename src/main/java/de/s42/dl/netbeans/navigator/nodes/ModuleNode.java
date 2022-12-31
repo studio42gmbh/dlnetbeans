@@ -69,7 +69,7 @@ public class ModuleNode extends AbstractNode
 	@Override
 	public String getHtmlDisplayName()
 	{
-		return "Module <b>" + module.getShortName() + "</b>";
+		return "Module <b>" + module.getShortName() + "</b><i> (" + module.getName() + ")</i>";
 	}
 	//</editor-fold>
 }

@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans;
 
 import de.s42.dl.language.DLConstants;
+import de.s42.dl.language.DLFileType;
 import java.io.IOException;
 import org.netbeans.core.spi.multiview.MultiViewElement;
 import org.netbeans.core.spi.multiview.text.MultiViewEditorElement;
@@ -33,7 +34,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.MIMEResolver;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectExistsException;
 import org.openide.loaders.MultiDataObject;
@@ -45,6 +45,7 @@ import org.netbeans.modules.textmate.lexer.api.GrammarRegistration;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import org.openide.filesystems.MIMEResolver;
 
 @Messages({
 	"LBL_DL_LOADER=Files of DL"
@@ -52,7 +53,7 @@ import de.s42.log.Logger;
 @MIMEResolver.ExtensionRegistration(
 	displayName = "#LBL_DL_LOADER",
 	mimeType = DL_MIME_TYPE,
-	extension = {DLConstants.FILE_ENDING},
+	extension = {DLFileType.HRF_EXTENSION},
 	position = 420
 )
 @DataObject.Registration(
