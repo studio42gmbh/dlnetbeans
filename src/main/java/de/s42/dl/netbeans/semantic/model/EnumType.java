@@ -43,14 +43,14 @@ public class EnumType extends Type
 		super();
 	}
 
-	public EnumType(String typeName, ParserRuleContext context, String moduleId)
+	public EnumType(String typeName, ParserRuleContext context, String moduleId, int originalLine, int originalPosition)
 	{
-		this(typeName, context, moduleId, null);
+		this(typeName, context, moduleId, originalLine, originalPosition, null);
 	}
 
-	public EnumType(String typeName, ParserRuleContext context, String moduleId, EnumType aliasOf)
+	public EnumType(String typeName, ParserRuleContext context, String moduleId, int originalLine, int originalPosition, EnumType aliasOf)
 	{
-		super(typeName, context, moduleId, aliasOf);
+		super(typeName, context, moduleId, originalLine, originalPosition, aliasOf);
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">

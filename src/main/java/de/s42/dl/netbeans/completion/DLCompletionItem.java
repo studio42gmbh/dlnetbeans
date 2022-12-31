@@ -25,20 +25,25 @@
 //</editor-fold>
 package de.s42.dl.netbeans.completion;
 
+import de.s42.dl.netbeans.util.FileObjectHelper;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -48,6 +53,12 @@ import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
 import org.netbeans.spi.editor.completion.CompletionTask;
 import org.netbeans.spi.editor.completion.support.CompletionUtilities;
+import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.text.NbDocument;
 import org.openide.util.Exceptions;
 
 /**
@@ -100,7 +111,22 @@ public class DLCompletionItem implements CompletionItem
 		@Override
 		public Action getGotoSourceAction()
 		{
-			return null;
+			final Path gotoFile = getGotoFile();
+
+			if (gotoFile == null) {
+				return null;
+			}
+
+			final int gotoLine = getGotoLine();
+
+			return new AbstractAction()
+			{
+				@Override
+				public void actionPerformed(ActionEvent e)
+				{
+					FileObjectHelper.openEditorForPathInLine(gotoFile, gotoLine);
+				}
+			};
 		}
 	}
 
@@ -127,7 +153,7 @@ public class DLCompletionItem implements CompletionItem
 			Completion.get().hideDocumentation();
 		}
 	}
-	
+
 	public DLCompletionItem(Document document, int insertionOffset, int caretOffset, boolean addWhitespace)
 	{
 		assert document != null;
@@ -169,6 +195,16 @@ public class DLCompletionItem implements CompletionItem
 		return null;
 	}
 
+	protected Path getGotoFile()
+	{
+		return null;
+	}
+
+	protected int getGotoLine()
+	{
+		return 1;
+	}
+
 	protected String getDocumentationHtmlText()
 	{
 		return "";
@@ -205,8 +241,7 @@ public class DLCompletionItem implements CompletionItem
 					doc.insertString(iOff,
 						textToBeInserted.toString(),
 						null);
-				} 
-				// Otherwise just insert the string
+				} // Otherwise just insert the string
 				else {
 					doc.insertString(cOff,
 						textToBeInserted.toString(),
@@ -305,7 +340,7 @@ public class DLCompletionItem implements CompletionItem
 	{
 		return 0;
 	}
-	
+
 	@Override
 	public CharSequence getSortText()
 	{

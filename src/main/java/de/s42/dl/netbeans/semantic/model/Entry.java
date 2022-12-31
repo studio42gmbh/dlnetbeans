@@ -38,6 +38,8 @@ public abstract class Entry
 
 	private final static Logger log = LogManager.getLogger(Entry.class.getName());
 	
+	protected int originalLine;
+	protected int originalPosition;
 	protected int startLine;
 	protected int startPosition;
 	protected int startOffset;
@@ -127,5 +129,26 @@ public abstract class Entry
 	{
 		this.moduleId = moduleId;
 	}
+
+	public int getOriginalLine()
+	{
+		return originalLine;
+	}
+
+	public void setOriginalLine(int originalLine)
+	{
+		this.originalLine = originalLine;
+	}
+
+	public int getOriginalPosition()
+	{
+		return originalPosition;
+	}
+
+	public void setOriginalPosition(int originalPosition)
+	{
+		this.originalPosition = originalPosition;
+	}
 	//</editor-fold>
+
 }

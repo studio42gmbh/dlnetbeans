@@ -32,6 +32,8 @@ import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
@@ -83,6 +85,24 @@ public class TypeDLCompletionItem extends DLCompletionItem
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
+	protected Path getGotoFile()
+	{
+		Path gotoFile = Path.of(type.getModuleId());
+
+		if (Files.isRegularFile(gotoFile)) {
+			return gotoFile;
+		}
+
+		return null;
+	}
+
+	@Override
+	protected int getGotoLine()
+	{
+		return type.getOriginalLine() - 1;
+	}
+
+	@Override
 	protected URL getDocumentationUrl()
 	{
 		return DocumentationHtmlFactory.createDocumentationUrl(type);
@@ -124,5 +144,4 @@ public class TypeDLCompletionItem extends DLCompletionItem
 		throw new UnsupportedOperationException("Can not set text for this item");
 	}
 	//</editor-fold>
-
 }

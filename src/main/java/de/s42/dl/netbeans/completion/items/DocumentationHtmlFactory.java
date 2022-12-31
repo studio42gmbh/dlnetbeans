@@ -118,9 +118,9 @@ public class DocumentationHtmlFactory
 			.append("<p>Defined in module <b>")
 			.append(type.getModuleId())
 			.append("</b> (")
-			.append(type.getStartLine())
+			.append(type.getOriginalLine())
 			.append(":")
-			.append(type.getStartPosition())
+			.append(type.getOriginalPosition())
 			.append(")</p>");
 		
 		// Append alias info

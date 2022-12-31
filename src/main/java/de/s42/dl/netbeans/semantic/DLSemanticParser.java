@@ -111,7 +111,14 @@ public class DLSemanticParser extends DLParserBaseListener
 			parserResult.addError("Type " + typeName + " is already defined", context);
 		}
 
-		Type type = new Type(typeName, getOverridableContext(context), moduleId, aliasOf);
+		Type type = new Type(
+			typeName, 
+			getOverridableContext(context),
+			moduleId, 
+			context.getStart().getLine(), 
+			context.getStart().getCharPositionInLine() + 1, 
+			aliasOf
+		);
 
 		CACHE.addType(cacheKey, type);
 
@@ -135,7 +142,14 @@ public class DLSemanticParser extends DLParserBaseListener
 			parserResult.addError("Enum " + enumName + " is already defined", context);
 		}
 
-		EnumType enumType = new EnumType(enumName, getOverridableContext(context), moduleId, aliasOf);
+		EnumType enumType = new EnumType(
+			enumName, 
+			getOverridableContext(context), 
+			moduleId, 
+			context.getStart().getLine(), 
+			context.getStart().getCharPositionInLine() + 1, 
+			aliasOf
+		);
 
 		CACHE.addType(cacheKey, enumType);
 
