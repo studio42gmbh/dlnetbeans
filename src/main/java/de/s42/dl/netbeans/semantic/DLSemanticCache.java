@@ -23,20 +23,25 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-
 package de.s42.dl.netbeans.semantic;
 
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.dl.netbeans.semantic.model.Type;
+import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
+import org.netbeans.modules.parsing.api.Snapshot;
+import org.netbeans.modules.parsing.api.Source;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -44,52 +49,119 @@ import org.netbeans.api.editor.mimelookup.MimeRegistration;
  */
 @MimeRegistration(mimeType = DL_MIME_TYPE,
 	service = DLSemanticCache.class)
-public class DLSemanticCache 
+public class DLSemanticCache
 {
-	
+
 	private final static Logger log = LogManager.getLogger(DLSemanticCache.class.getName());
-	
-	protected final Map<String, Set<String>> typeNamesByKey = Collections.synchronizedMap(new HashMap<>());
-	
-	public synchronized List<String> getTypeNames(String key)
+
+	protected final Map<String, Set<Type>> typesByKey = Collections.synchronizedMap(new HashMap<>());
+
+	// <editor-fold desc="public static String getCacheKey(.)" defaultstate="collapsed">
+	public static String getCacheKey(Document document)
 	{
-		assert key != null;
-		
-		//log.debug("getTypeNames", key);
-		
-		Set<String> typeNames = typeNamesByKey.get(key);		
-		
-		if (typeNames == null) {
-			return Collections.EMPTY_LIST;
-		}
-		
-		return new ArrayList(typeNames);
+		assert document != null;
+
+		Source source = Source.create(document);
+
+		return getCacheKey(source.getFileObject());
 	}
 
-	public synchronized void addTypeName(String key, String typeName)
+	public static String getCacheKey(DLParserResult result)
+	{
+		assert result != null;
+
+		return getCacheKey(result.getSnapshot());
+	}
+
+	public static String getCacheKey(Snapshot snapshot)
+	{
+		assert snapshot != null;
+
+		return getCacheKey(snapshot.getSource().getFileObject());
+	}
+
+	public static String getCacheKey(FileObject fileObject)
+	{
+		assert fileObject != null;
+
+		return fileObject.getPath();
+	}
+	//</editor-fold>
+
+	public synchronized boolean hasType(String key, String typeName)
 	{
 		assert key != null;
 		assert typeName != null;
-		
-		//log.debug("addTypeName", key, typeName);
-		
-		Set<String> typeNames = typeNamesByKey.get(key);		
-		
-		if (typeNames == null) {
-			typeNames = Collections.synchronizedSortedSet(new TreeSet<>());		
-			typeNamesByKey.put(key, typeNames);
+
+		Set<Type> types = typesByKey.get(key);
+
+		if (types == null) {
+			return false;
 		}
-		
-		typeNames.add(typeName);
+
+		return types.stream().anyMatch((type) -> {
+			return type.getIdentifier().equals(typeName);
+		});
 	}
-	
-	public synchronized void clearTypeNames(String key)
+
+	public List<Type> findTypes(String key, String filter, int caretOffset)
 	{
 		assert key != null;
-		
+		assert filter != null;
+
+		Set<Type> types = typesByKey.get(key);
+
+		if (types == null) {
+			return Collections.EMPTY_LIST;
+		}
+
+		// Filter out types which match the start with filter and are defined before the offset
+		List<Type> result = types.stream().filter((type) -> {
+			return // Empty filter or match start case independent
+				(filter.isBlank() || type.getIdentifier().toLowerCase().startsWith(filter.toLowerCase()))
+				// End of type location before caret offset
+				&& type.getEndOffset() < caretOffset;
+		}).toList();
+
+		return Collections.unmodifiableList(result);
+	}
+
+	public List<Type> getTypes(String key)
+	{
+		assert key != null;
+
+		//log.debug("getTypeNames", key);
+		Set<Type> types = typesByKey.get(key);
+
+		if (types == null) {
+			return Collections.EMPTY_LIST;
+		}
+
+		return Collections.unmodifiableList(new ArrayList(types));
+	}
+
+	public synchronized void addType(String key, Type type)
+	{
+		assert key != null;
+		assert type != null;
+
+		//log.debug("addTypeName", key, typeName);
+		Set<Type> types = typesByKey.get(key);
+
+		if (types == null) {
+			types = Collections.synchronizedSet(new HashSet<>());
+			typesByKey.put(key, types);
+		}
+
+		types.add(type);
+	}
+
+	public synchronized void clear(String key)
+	{
+		assert key != null;
+
 		//log.debug("clearTypeNames", key);
-		
-		typeNamesByKey.remove(key);
+		typesByKey.remove(key);
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">

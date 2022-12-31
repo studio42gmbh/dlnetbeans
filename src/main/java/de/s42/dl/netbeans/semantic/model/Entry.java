@@ -23,69 +23,98 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.navigator.nodes;
 
-import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
+package de.s42.dl.netbeans.semantic.model;
+
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.awt.Image;
-import java.util.Arrays;
-import org.openide.nodes.AbstractNode;
-import org.openide.nodes.Children;
-import org.openide.util.ImageUtilities;
-import org.openide.util.NbBundle;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class ValueNode extends AbstractNode
+public abstract class Entry 
 {
 
-	private final static Logger log = LogManager.getLogger(ValueNode.class.getName());
-
-	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/value.png"); // NOI18N
-
-	protected final String name;
-	protected final Object value;
-
-	public ValueNode(String name, Object value)
-	{
-		super(Children.LEAF);
-
-		assert name != null;
-
-		this.value = value;
-		this.name = name;
-	}
-
+	private final static Logger log = LogManager.getLogger(Entry.class.getName());
+	
+	protected int startLine;
+	protected int startPosition;
+	protected int startOffset;
+	protected int endLine;
+	protected int endPosition;
+	protected int endOffset;
+	protected String identifier;
+	
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	@Override
-	public Image getIcon(int type)
+	public String getIdentifier()
 	{
-		return ICON;
+		return identifier;
 	}
 
-	@Override
-	public Image getOpenedIcon(int type)
+	public void setIdentifier(String identifier)
 	{
-		return getIcon(type);
+		this.identifier = identifier;
 	}
 
-	@Override
-	public String getHtmlDisplayName()
+	public int getStartLine()
 	{
-		String valueDisplay;
+		return startLine;
+	}
 
-		// Print arrays nicely
-		if (value != null && value.getClass().isArray()) {
-			valueDisplay = Arrays.toString((Object[]) value);
-		} // toString the rest
-		else {
-			valueDisplay = (value != null) ? value.toString() : "<null>";
-		}
+	public void setStartLine(int startLine)
+	{
+		this.startLine = startLine;
+	}
 
-		return NbBundle.getMessage(DLNavigatorPanel.class, "LBL_ValueNode", name, valueDisplay); // NOI18N
+	public int getStartPosition()
+	{
+		return startPosition;
+	}
+
+	public void setStartPosition(int startPosition)
+	{
+		this.startPosition = startPosition;
+	}
+
+	public int getStartOffset()
+	{
+		return startOffset;
+	}
+
+	public void setStartOffset(int startOffset)
+	{
+		this.startOffset = startOffset;
+	}
+
+	public int getEndLine()
+	{
+		return endLine;
+	}
+
+	public void setEndLine(int endLine)
+	{
+		this.endLine = endLine;
+	}
+
+	public int getEndPosition()
+	{
+		return endPosition;
+	}
+
+	public void setEndPosition(int endPosition)
+	{
+		this.endPosition = endPosition;
+	}
+
+	public int getEndOffset()
+	{
+		return endOffset;
+	}
+
+	public void setEndOffset(int endOffset)
+	{
+		this.endOffset = endOffset;
 	}
 	//</editor-fold>
 }

@@ -33,6 +33,7 @@ import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Snapshot;
@@ -54,6 +55,11 @@ public class DLParserResult extends ParserResult
 		super(snapshot);
 	}
 
+	public boolean addWarning(String message, ParserRuleContext context)
+	{
+		return addWarning(message, context.getStart().getStartIndex(), context.getStop().getStopIndex() + 1);
+	}
+	
 	public boolean addWarning(String message, Token token)
 	{
 		return addWarning(message, token.getStartIndex(), token.getStopIndex() + 1);
@@ -77,6 +83,11 @@ public class DLParserResult extends ParserResult
 		assert warning != null;
 
 		return hints.add(warning);
+	}
+
+	public boolean addError(String message, ParserRuleContext context)
+	{
+		return addError(message, context.getStart().getStartIndex(), context.getStop().getStopIndex() + 1);
 	}
 
 	public boolean addError(String message, Token token)

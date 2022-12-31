@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans.navigator;
 
 import de.s42.dl.DLModule;
+import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.core.DefaultCore;
 import de.s42.dl.exceptions.DLException;
 import de.s42.dl.netbeans.DLDataObject;
@@ -98,7 +99,11 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 				// Parse the DL and create module as root
 				//log.start("DLNNavigatorPanelComponent.showContentNode");
 				String dlContent = dataObject.getPrimaryFile().asText();
-				DefaultCore core = new DefaultCore();
+				BaseDLCore core = new BaseDLCore(true);
+				DefaultCore.loadResolvers(core);
+				DefaultCore.loadAnnotations(core);
+				DefaultCore.loadExports(core);
+				DefaultCore.loadPragmas(core);
 				final DLModule module = core.parse(dataObject.getPrimaryFile().getName(), dlContent);
 				final ModuleNode root = new ModuleNode(module);
 				//log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
@@ -121,7 +126,6 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 		assert ex != null;
 
 		//log.error(ex.getMessage());
-
 		SwingUtilities.invokeLater(() -> {
 			elementView.setRootVisible(true);
 			manager.setRootContext(new ErrorNode(ex));

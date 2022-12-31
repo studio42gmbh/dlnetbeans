@@ -28,6 +28,7 @@ package de.s42.dl.netbeans.completion.items;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.completion.DLCompletionItem;
 import de.s42.dl.netbeans.semantic.DLSemanticCache;
+import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.Color;
@@ -36,7 +37,6 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
-import org.netbeans.modules.parsing.api.Source;
 import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
 import org.openide.util.ImageUtilities;
@@ -57,30 +57,31 @@ public class TypeDLCompletionItem extends DLCompletionItem
 
 	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
-	public TypeDLCompletionItem(String text, Document document, int insertionOffset, int caretOffset)
+	protected Type type;
+
+	public TypeDLCompletionItem(Type type, Document document, int insertionOffset, int caretOffset)
 	{
-		super(text, document, insertionOffset, caretOffset, true);
+		super(document, insertionOffset, caretOffset, true);
+
+		assert type != null;
+
+		this.type = type;
 	}
 
 	public static void addTypeItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
-		Source source = Source.create(document);
+		String cacheKey = DLSemanticCache.getCacheKey(document);
 
-		String cacheKey = source.getFileObject().getPath();
+		for (Type type : CACHE.findTypes(cacheKey, currentWord, caretOffset)) {
 
-		for (String type : CACHE.getTypeNames(cacheKey)) {
+			CompletionItem item = new TypeDLCompletionItem(
+				type,
+				document,
+				caretOffset - currentWord.length(),
+				caretOffset
+			);
 
-			if (currentWord.isBlank() || type.startsWith(currentWord)) {
-
-				CompletionItem item = new TypeDLCompletionItem(
-					type,
-					document,
-					caretOffset - currentWord.length(),
-					caretOffset
-				);
-
-				result.addItem(item);
-			}
+			result.addItem(item);
 		}
 	}
 
@@ -100,13 +101,29 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	@Override
 	protected String getRightHtmlText()
 	{
-		return TYPE_RIGHT_HTML_TEXT;
+		StringBuilder builder = new StringBuilder();
+
+		builder
+			.append("<i>Type (")
+			.append(type.getStartLine())
+			.append(":")
+			.append(type.getStartPosition())
+			.append(")</i>");
+
+		// Append alias info
+		if (type.getAliasOf() != null) {
+			builder
+				.append(" alias of ")
+				.append(type.getAliasOf().getIdentifier());
+		}
+
+		return builder.toString();
 	}
 
 	@Override
 	protected Color getTextColor(boolean selected)
 	{
-		return TYPE_TEXT_COLOR;
+		return null;//TYPE_TEXT_COLOR;
 	}
 
 	@Override
@@ -120,5 +137,18 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	{
 		return 90;
 	}
+
+	@Override
+	public String getText()
+	{
+		return type.getIdentifier();
+	}
+
+	@Override
+	public void setText(String text)
+	{
+		throw new UnsupportedOperationException("Can not set text for this item");
+	}
 	//</editor-fold>
+
 }

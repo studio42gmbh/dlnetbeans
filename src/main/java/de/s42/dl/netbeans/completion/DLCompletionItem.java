@@ -129,6 +129,18 @@ public class DLCompletionItem implements CompletionItem
 			Completion.get().hideDocumentation();
 		}
 	}
+	
+	public DLCompletionItem(Document document, int insertionOffset, int caretOffset, boolean addWhitespace)
+	{
+		assert document != null;
+		assert caretOffset >= 0;
+		assert insertionOffset >= 0;
+
+		this.document = document;
+		this.insertionOffset = insertionOffset;
+		this.caretOffset = caretOffset;
+		this.addWhitespace = addWhitespace;
+	}
 
 	public DLCompletionItem(String text, Document document, int insertionOffset, int caretOffset, boolean addWhitespace)
 	{
@@ -189,12 +201,15 @@ public class DLCompletionItem implements CompletionItem
 
 			if (getCaretOffset() != iOff) {
 				String previousString = doc.getText(iOff, cOff - iOff);
-				if (tx.startsWith(previousString)) {
+				// Replace if string matches start of toen case independent
+				if (tx.toLowerCase().startsWith(previousString.toLowerCase())) {
 					doc.remove(iOff, cOff - iOff);
 					doc.insertString(iOff,
 						textToBeInserted.toString(),
 						null);
-				} else {
+				} 
+				// Otherwise just insert the string
+				else {
 					doc.insertString(cOff,
 						textToBeInserted.toString(),
 						null);
@@ -292,31 +307,24 @@ public class DLCompletionItem implements CompletionItem
 	{
 		return 0;
 	}
-
+	
 	@Override
 	public CharSequence getSortText()
 	{
-		return text;
+		return getText();
 	}
 
 	@Override
 	public CharSequence getInsertPrefix()
 	{
-		return text;
-	}
-
-	public boolean startsWith(String other)
-	{
-		assert other != null;
-
-		return text.startsWith(other);
+		return getText();
 	}
 
 	@Override
 	public int hashCode()
 	{
 		int hash = 5;
-		hash = 41 * hash + Objects.hashCode(this.text);
+		hash = 41 * hash + Objects.hashCode(getText());
 		return hash;
 	}
 
@@ -333,7 +341,7 @@ public class DLCompletionItem implements CompletionItem
 			return false;
 		}
 		final DLCompletionItem other = (DLCompletionItem) obj;
-		return Objects.equals(this.text, other.text);
+		return Objects.equals(getText(), other.getText());
 	}
 
 	public String getText()
