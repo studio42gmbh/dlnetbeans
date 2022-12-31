@@ -33,6 +33,7 @@ import de.s42.dl.core.resolvers.LibraryCoreResolver;
 import de.s42.dl.exceptions.InvalidModule;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.semantic.model.Type;
+import de.s42.dl.netbeans.semantic.model.EnumType;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.netbeans.syntax.DLSyntaxParser;
 import de.s42.dl.parser.DLParser;
@@ -115,6 +116,51 @@ public class DLSemanticParser extends DLParserBaseListener
 		return type;
 	}
 
+	protected EnumType addEnumDefinition(ParserRuleContext context, boolean warnOnLowerCase, EnumType aliasOf)
+	{
+		assert cacheKey != null;
+		assert context != null;
+
+		String enumName = context.getText();
+
+		// Error: Dont allow double definitions
+		if (CACHE.hasType(cacheKey, enumName)) {
+			parserResult.addError("Enum " + enumName + " is already defined", context);
+		}
+
+		EnumType enumType = new EnumType(enumName, getOverridableContext(context), aliasOf);
+
+		CACHE.addType(cacheKey, enumType);
+
+		// Warning: Types simple name should start with an uppercase letter
+		if (warnOnLowerCase && StringHelper.isLowerCaseFirst(enumType.getSimpleName())) {
+			parserResult.addWarning("Type " + enumName + " start with a lowercase letter but types should always start with an uppercase letter", context);
+		}
+
+		return enumType;
+	}
+
+	@Override
+	public void exitEnumDefinition(DLParser.EnumDefinitionContext ctx)
+	{
+		assert ctx != null;
+
+		if (ctx.enumName() == null) {
+			return;
+		}
+
+		EnumType type = addEnumDefinition(ctx.enumName(), true, null);
+
+		// Add alias typenames -> dont warn if they start with lowercase
+		if (ctx.aliases() != null) {
+			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
+				addEnumDefinition(aliasCtx, false, type);
+			}
+		}
+	}
+	
+	
+
 	@Override
 	public void exitTypeHeader(TypeHeaderContext ctx)
 	{
@@ -123,8 +169,6 @@ public class DLSemanticParser extends DLParserBaseListener
 		if (ctx.typeDefinitionName() == null) {
 			return;
 		}
-
-		String typeName = ctx.typeDefinitionName().getText();
 
 		Type type = addTypeDefinition(ctx.typeDefinitionName(), true, null);
 

@@ -29,7 +29,6 @@ import de.s42.dl.language.DLKeyword;
 import de.s42.dl.netbeans.completion.DLCompletionItem;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.awt.Color;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.ImageIcon;
@@ -44,72 +43,82 @@ import org.openide.util.ImageUtilities;
  */
 public class KeywordDLCompletionItem extends DLCompletionItem
 {
-
+	
 	private final static Logger log = LogManager.getLogger(KeywordDLCompletionItem.class.getName());
-
-	protected static String KEYWORD_RIGHT_HTML_TEXT = "<i>Keyword</i>";
-	protected static Color KEYWORD_TEXT_COLOR = Color.decode("0x0000B2");
+	
 	protected static ImageIcon KEYWORD_ICON
 		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/dl-icon-keyword.png"));
-
-	public KeywordDLCompletionItem(String text, Document document, int insertionOffset, int caretOffset)
+	
+	protected final DLKeyword keyword;
+	
+	public KeywordDLCompletionItem(DLKeyword keyword, Document document, int insertionOffset, int caretOffset)
 	{
-		super(text, document, insertionOffset, caretOffset, true);
+		super(document, insertionOffset, caretOffset, true);
+		
+		assert keyword != null;
+		
+		this.keyword = keyword;
 	}
 	
 	public static void addKeywordItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
-		for (String keyword : DLKeyword.getKeywords()) {
-
-			if (currentWord.isBlank() || keyword.startsWith(currentWord)) {
-
+		for (DLKeyword keyword : DLKeyword.values()) {
+			
+			if (currentWord.isBlank() || keyword.keyword.startsWith(currentWord.toLowerCase())) {
+				
 				CompletionItem item = new KeywordDLCompletionItem(
 					keyword,
 					document,
 					caretOffset - currentWord.length(),
 					caretOffset
 				);
-
+				
 				result.addItem(item);
 			}
 		}
-	}	
+	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
 	protected URL getDocumentationUrl() throws MalformedURLException
 	{
-		return new URL("https://github.com/studio42gmbh/dl/wiki/1.2.-Keywords");
+		return DocumentationHtmlFactory.createDocumentationUrl(keyword);
 	}
-
+	
 	@Override
 	protected String getDocumentationHtmlText()
 	{
-		return "<h2>Keyword " + KeywordDLCompletionItem.this.getText() + "</h2><p>This keyword ...</p><br><br><a href='https://github.com/studio42gmbh/dl'>Read more</a>";
+		return DocumentationHtmlFactory.createDocumentationHtml(keyword);
 	}
-
+	
 	@Override
 	protected String getRightHtmlText()
 	{
-		return KEYWORD_RIGHT_HTML_TEXT;
+		return DocumentationHtmlFactory.createRightTextHtml(keyword);
 	}
-
-	@Override
-	protected Color getTextColor(boolean selected)
-	{
-		return KEYWORD_TEXT_COLOR;
-	}
-
+	
 	@Override
 	protected ImageIcon getIcon()
 	{
 		return KEYWORD_ICON;
 	}
-
+	
 	@Override
 	public int getSortPriority()
 	{
 		return 100;
+	}
+	
+	@Override
+	public String getText()
+	{
+		return keyword.keyword.toString();
+	}
+	
+	@Override
+	public void setText(String text)
+	{
+		throw new UnsupportedOperationException("Can not set text for this item");
 	}
 	//</editor-fold>
 }

@@ -57,8 +57,6 @@ import org.openide.util.Exceptions;
 public class DLCompletionItem implements CompletionItem
 {
 
-	protected static Color TEXT_COLOR = Color.decode("0x000000");
-
 	private final static Logger log = LogManager.getLogger(DLCompletionItem.class.getName());
 
 	protected String text;
@@ -163,7 +161,7 @@ public class DLCompletionItem implements CompletionItem
 
 	protected Color getTextColor(boolean selected)
 	{
-		return TEXT_COLOR;
+		return null;
 	}
 
 	protected URL getDocumentationUrl() throws MalformedURLException

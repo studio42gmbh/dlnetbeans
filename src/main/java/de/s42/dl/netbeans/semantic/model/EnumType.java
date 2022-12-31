@@ -23,61 +23,36 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.navigator.nodes;
+package de.s42.dl.netbeans.semantic.model;
 
-import de.s42.dl.DLEnum;
-import de.s42.dl.DLType;
-import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.awt.Image;
-import org.openide.nodes.AbstractNode;
-import org.openide.nodes.Children;
-import org.openide.util.ImageUtilities;
-import org.openide.util.NbBundle;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class TypeNode extends AbstractNode
+public class EnumType extends Type
 {
 
-	private final static Logger log = LogManager.getLogger(TypeNode.class.getName());
+	private final static Logger log = LogManager.getLogger(EnumType.class.getName());
 
-	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/type.png"); // NOI18N
-
-	protected final DLType type;
-
-	public TypeNode(DLType type)
+	public EnumType()
 	{
-		super(Children.LEAF);
+		super();
+	}
 
-		assert type != null;
+	public EnumType(String typeName, ParserRuleContext context)
+	{
+		this(typeName, context, null);
+	}
 
-		this.type = type;
-
-		setChildren(Children.create(new TypeNodeChildFactory(this.type), true));
+	public EnumType(String typeName, ParserRuleContext context, EnumType aliasOf)
+	{
+		super(typeName, context, aliasOf);
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	@Override
-	public Image getIcon(int type)
-	{
-		return ICON;
-	}
-
-	@Override
-	public Image getOpenedIcon(int type)
-	{
-		return getIcon(type);
-	}
-
-	@Override
-	public String getHtmlDisplayName()
-	{
-		String typeKindDisplay = (type instanceof DLEnum) ? "Enum" : "Type";
-		return NbBundle.getMessage(DLNavigatorPanel.class, "LBL_TypeNode", typeKindDisplay, type); // NOI18N
-	}
 	//</editor-fold>
 }

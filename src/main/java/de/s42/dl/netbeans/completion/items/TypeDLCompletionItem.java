@@ -31,8 +31,6 @@ import de.s42.dl.netbeans.semantic.DLSemanticCache;
 import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.awt.Color;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
@@ -50,18 +48,16 @@ public class TypeDLCompletionItem extends DLCompletionItem
 
 	private final static Logger log = LogManager.getLogger(TypeDLCompletionItem.class.getName());
 
-	protected static String TYPE_RIGHT_HTML_TEXT = "<i>Type</i>";
-	protected static Color TYPE_TEXT_COLOR = Color.decode("0x000055");
 	protected static ImageIcon TYPE_ICON
 		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/type.png"));
 
 	final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
-	protected Type type;
+	protected final Type type;
 
 	public TypeDLCompletionItem(Type type, Document document, int insertionOffset, int caretOffset)
 	{
-		super(document, insertionOffset, caretOffset, true);
+		super(document, insertionOffset, caretOffset, false);
 
 		assert type != null;
 
@@ -87,43 +83,21 @@ public class TypeDLCompletionItem extends DLCompletionItem
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
-	protected URL getDocumentationUrl() throws MalformedURLException
+	protected URL getDocumentationUrl()
 	{
-		return new URL("https://github.com/studio42gmbh/dl/wiki/1.2.-Keywords");
+		return DocumentationHtmlFactory.createDocumentationUrl(type);
 	}
 
 	@Override
 	protected String getDocumentationHtmlText()
 	{
-		return "<h2>Type " + TypeDLCompletionItem.this.getText() + "</h2><p>This type ...</p><br><br><a href='https://github.com/studio42gmbh/dl'>Read more</a>";
+		return DocumentationHtmlFactory.createDocumentationHtml(type);
 	}
 
 	@Override
 	protected String getRightHtmlText()
 	{
-		StringBuilder builder = new StringBuilder();
-
-		builder
-			.append("<i>Type (")
-			.append(type.getStartLine())
-			.append(":")
-			.append(type.getStartPosition())
-			.append(")</i>");
-
-		// Append alias info
-		if (type.getAliasOf() != null) {
-			builder
-				.append(" alias of ")
-				.append(type.getAliasOf().getIdentifier());
-		}
-
-		return builder.toString();
-	}
-
-	@Override
-	protected Color getTextColor(boolean selected)
-	{
-		return null;//TYPE_TEXT_COLOR;
+		return DocumentationHtmlFactory.createRightTextHtml(type);
 	}
 
 	@Override
