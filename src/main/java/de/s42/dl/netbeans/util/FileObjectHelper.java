@@ -36,6 +36,7 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.NbDocument;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -43,6 +44,9 @@ import org.openide.text.NbDocument;
  */
 public final class FileObjectHelper
 {
+
+	public final static int SET_LINE_RETRIES = 10;
+	public final static int SET_LINE_RETRY_WAIT_MS = 200;
 
 	private final static Logger log = LogManager.getLogger(FileObjectHelper.class.getName());
 
@@ -65,16 +69,33 @@ public final class FileObjectHelper
 			try {
 				FileObject gotoFileObject = FileUtil.toFileObject(path.toFile());
 				DataObject dataObject = DataObject.find(gotoFileObject);
-				EditorCookie cookie = dataObject.getCookie(EditorCookie.class);
+				EditorCookie cookie = dataObject.getLookup().lookup(EditorCookie.class);
 				cookie.open();
 				final int offset = NbDocument.findLineOffset(cookie.getDocument(), line);
-				JEditorPane[] openPanes = cookie.getOpenedPanes();
-				if (openPanes != null && openPanes.length > 0) {
-					openPanes[0].setCaretPosition(offset);
-				}
+				setLineInDocument(cookie, offset, SET_LINE_RETRIES);
 			} catch (DataObjectNotFoundException ex) {
 				throw new RuntimeException(ex);
 			}
 		});
+	}
+
+	protected static void setLineInDocument(EditorCookie cookie, int offset, int retries)
+	{
+		assert cookie != null;
+
+		if (retries <= 0) {
+			return;
+		}
+
+		RequestProcessor.getDefault().post(() -> {
+			SwingUtilities.invokeLater(() -> {
+				JEditorPane[] openPanes = cookie.getOpenedPanes();
+				if (openPanes != null && openPanes.length > 0) {
+					openPanes[0].setCaretPosition(offset);
+				} else {
+					setLineInDocument(cookie, offset, retries - 1);
+				}
+			});
+		}, SET_LINE_RETRY_WAIT_MS);
 	}
 }

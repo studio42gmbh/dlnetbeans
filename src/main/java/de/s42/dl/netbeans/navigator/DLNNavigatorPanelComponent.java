@@ -40,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.view.BeanTreeView;
-import org.openide.loaders.DataObject;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -73,12 +72,11 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 		manager.setRootContext(getWaitNode());
 	}
 
-	public void setNewContent(DataObject dataObject)
+	public void setNewContent(DLDataObject dataObject)
 	{
 		//log.debug("setNewContent");
 
-		// do something
-		this.dataObject = (DLDataObject) dataObject;
+		this.dataObject = dataObject;
 
 		if (this.dataObject != null) {
 			showContentNode();
@@ -97,11 +95,13 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 			try {
 				// Parse the DL and create module as root
 				log.start("DLNNavigatorPanelComponent.showContentNode");
+				// @todo Load as little as possible to make sure modules can have a plain core
 				BaseDLCore core = new BaseDLCore(true);
 				DefaultCore.loadResolvers(core);
 				DefaultCore.loadAnnotations(core);
-				DefaultCore.loadExports(core);
 				DefaultCore.loadPragmas(core);
+				DefaultCore.loadTypes(core);
+				DefaultCore.loadExports(core);
 				final DLModule module = core.parse(dataObject.getPrimaryFile().getPath());
 				log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
 
@@ -152,10 +152,6 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 
 	protected static class MyBeanTreeView extends BeanTreeView
 	{
-
-		public MyBeanTreeView()
-		{
-		}
 
 		public boolean getScrollOnExpand()
 		{

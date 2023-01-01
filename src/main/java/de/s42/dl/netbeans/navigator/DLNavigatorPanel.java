@@ -138,7 +138,7 @@ public class DLNavigatorPanel implements NavigatorPanel
 			oldDataObject.getPrimaryFile().removeFileChangeListener(getFileChangeListener());
 		}
 
-		getComponent().setNewContent(dataObject);
+		getComponent().setNewContent((DLDataObject)dataObject);
 
 		// Add file change listener to new data object
 		if (dataObject != null) {
@@ -196,7 +196,7 @@ public class DLNavigatorPanel implements NavigatorPanel
 				// Refresh image viewer
 				SwingUtilities.invokeLater(() -> {
 					try {
-						getComponent().setNewContent(DataObject.find(event.getFile()));
+						getComponent().setNewContent((DLDataObject)DataObject.find(event.getFile()));
 					} catch (DataObjectNotFoundException ex) {
 						throw new RuntimeException(ex);
 					}

@@ -28,6 +28,7 @@ package de.s42.dl.netbeans.semantic.model;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.Objects;
 
 /**
  *
@@ -151,4 +152,33 @@ public abstract class Entry
 	}
 	//</editor-fold>
 
+	// <editor-fold desc="EqualsHashcode" defaultstate="collapsed">
+	@Override
+	public int hashCode()
+	{
+		int hash = 7;
+		hash = 89 * hash + Objects.hashCode(this.identifier);
+		hash = 89 * hash + Objects.hashCode(this.moduleId);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Entry other = (Entry) obj;
+		if (!Objects.equals(this.identifier, other.identifier)) {
+			return false;
+		}
+		return Objects.equals(this.moduleId, other.moduleId);
+	}
+	//</editor-fold>	
 }

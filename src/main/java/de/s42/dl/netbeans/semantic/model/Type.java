@@ -123,6 +123,5 @@ public class Type extends Entry
 			return identifier;
 		}
 	}
-
 	//</editor-fold>
 }
