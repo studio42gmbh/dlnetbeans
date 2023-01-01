@@ -48,6 +48,8 @@ import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 
@@ -112,11 +114,11 @@ public class DLSemanticParser extends DLParserBaseListener
 		}
 
 		Type type = new Type(
-			typeName, 
+			typeName,
 			getOverridableContext(context),
-			moduleId, 
-			context.getStart().getLine(), 
-			context.getStart().getCharPositionInLine() + 1, 
+			moduleId,
+			context.getStart().getLine(),
+			context.getStart().getCharPositionInLine() + 1,
 			aliasOf
 		);
 
@@ -130,7 +132,7 @@ public class DLSemanticParser extends DLParserBaseListener
 		return type;
 	}
 
-	protected EnumType addEnumDefinition(ParserRuleContext context, boolean warnOnLowerCase, EnumType aliasOf)
+	protected EnumType addEnumDefinition(ParserRuleContext context, List<String> values, boolean warnOnLowerCase, EnumType aliasOf)
 	{
 		assert cacheKey != null;
 		assert context != null;
@@ -143,11 +145,12 @@ public class DLSemanticParser extends DLParserBaseListener
 		}
 
 		EnumType enumType = new EnumType(
-			enumName, 
-			getOverridableContext(context), 
-			moduleId, 
-			context.getStart().getLine(), 
-			context.getStart().getCharPositionInLine() + 1, 
+			enumName,
+			values,
+			getOverridableContext(context),
+			moduleId,
+			context.getStart().getLine(),
+			context.getStart().getCharPositionInLine() + 1,
 			aliasOf
 		);
 
@@ -170,12 +173,19 @@ public class DLSemanticParser extends DLParserBaseListener
 			return;
 		}
 
-		EnumType type = addEnumDefinition(ctx.enumName(), true, null);
+		List<String> values = new ArrayList<>();
+		if (ctx.enumBody() != null && ctx.enumBody().enumValueDefinition() != null) {
+			for (DLParser.EnumValueDefinitionContext evCtx : ctx.enumBody().enumValueDefinition()) {
+				values.add(evCtx.getText());
+			}
+		}
+
+		EnumType type = addEnumDefinition(ctx.enumName(), values, true, null);
 
 		// Add alias typenames -> dont warn if they start with lowercase
 		if (ctx.aliases() != null) {
 			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
-				addEnumDefinition(aliasCtx, false, type);
+				addEnumDefinition(aliasCtx, values, false, type);
 			}
 		}
 	}

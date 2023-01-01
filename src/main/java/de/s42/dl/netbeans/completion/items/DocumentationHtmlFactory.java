@@ -83,7 +83,7 @@ public class DocumentationHtmlFactory
 
 		return builder.toString();
 	}
-	
+
 	public static String createDocumentationHtml(DLKeyword keyword)
 	{
 		assert keyword != null;
@@ -100,13 +100,13 @@ public class DocumentationHtmlFactory
 
 		return builder.toString();
 	}
-	
+
 	public static String createDocumentationHtml(Type type)
 	{
 		assert type != null;
 
 		StringBuilder builder = new StringBuilder();
-		
+
 		String typeKindDisplay = (type instanceof EnumType) ? "Enum" : "Type";
 
 		builder
@@ -114,7 +114,16 @@ public class DocumentationHtmlFactory
 			.append(typeKindDisplay)
 			.append(" ")
 			.append(type.getIdentifier())
-			.append("</h2>")
+			.append("</h2>");
+
+		if (type instanceof EnumType) {
+			builder
+				.append("<p>")
+				.append(String.join(", ", ((EnumType) type).getValues()))
+				.append("</p>");
+		}
+
+		builder
 			.append("<p>Defined in module <b>")
 			.append(type.getModuleId())
 			.append("</b> (")
@@ -122,7 +131,7 @@ public class DocumentationHtmlFactory
 			.append(":")
 			.append(type.getOriginalPosition())
 			.append(")</p>");
-		
+
 		// Append alias info
 		if (type.getAliasOf() != null) {
 			builder
@@ -130,10 +139,9 @@ public class DocumentationHtmlFactory
 				.append(type.getAliasOf().getIdentifier())
 				.append("</b></p>");
 		}
-		
+
 		builder
 			.append("<p><a href='https://github.com/studio42gmbh/dl/wiki/2-Types'>Read more about types in DL</a>");
-
 
 		return builder.toString();
 	}

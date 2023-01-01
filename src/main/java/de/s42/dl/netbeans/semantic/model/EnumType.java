@@ -27,6 +27,9 @@ package de.s42.dl.netbeans.semantic.model;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
@@ -38,21 +41,26 @@ public class EnumType extends Type
 
 	private final static Logger log = LogManager.getLogger(EnumType.class.getName());
 
-	public EnumType()
+	protected final List<String> values = new ArrayList<>();
+
+	public EnumType(String typeName, List<String> values, ParserRuleContext context, String moduleId, int originalLine, int originalPosition)
 	{
-		super();
+		this(typeName, values, context, moduleId, originalLine, originalPosition, null);
 	}
 
-	public EnumType(String typeName, ParserRuleContext context, String moduleId, int originalLine, int originalPosition)
-	{
-		this(typeName, context, moduleId, originalLine, originalPosition, null);
-	}
-
-	public EnumType(String typeName, ParserRuleContext context, String moduleId, int originalLine, int originalPosition, EnumType aliasOf)
+	public EnumType(String typeName, List<String> values, ParserRuleContext context, String moduleId, int originalLine, int originalPosition, EnumType aliasOf)
 	{
 		super(typeName, context, moduleId, originalLine, originalPosition, aliasOf);
+
+		if (values != null) {
+			this.values.addAll(values);
+		}
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
+	public List<String> getValues()
+	{
+		return Collections.unmodifiableList(values);
+	}
 	//</editor-fold>
 }

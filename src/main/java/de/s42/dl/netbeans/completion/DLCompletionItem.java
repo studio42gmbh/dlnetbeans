@@ -38,12 +38,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -53,12 +53,6 @@ import org.netbeans.spi.editor.completion.CompletionItem;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
 import org.netbeans.spi.editor.completion.CompletionTask;
 import org.netbeans.spi.editor.completion.support.CompletionUtilities;
-import org.openide.cookies.EditorCookie;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
-import org.openide.text.NbDocument;
 import org.openide.util.Exceptions;
 
 /**
@@ -117,6 +111,10 @@ public class DLCompletionItem implements CompletionItem
 				return null;
 			}
 
+			if (!Files.isRegularFile(gotoFile)) {
+				return null;
+			}
+
 			final int gotoLine = getGotoLine();
 
 			return new AbstractAction()
@@ -124,6 +122,7 @@ public class DLCompletionItem implements CompletionItem
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
+					Completion.get().hideAll();
 					FileObjectHelper.openEditorForPathInLine(gotoFile, gotoLine);
 				}
 			};

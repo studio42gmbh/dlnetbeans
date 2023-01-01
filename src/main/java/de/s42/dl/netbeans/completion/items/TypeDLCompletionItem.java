@@ -87,13 +87,7 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	@Override
 	protected Path getGotoFile()
 	{
-		Path gotoFile = Path.of(type.getModuleId());
-
-		if (Files.isRegularFile(gotoFile)) {
-			return gotoFile;
-		}
-
-		return null;
+		return Path.of(type.getModuleId());
 	}
 
 	@Override

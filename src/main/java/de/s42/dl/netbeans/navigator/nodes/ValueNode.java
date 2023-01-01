@@ -84,6 +84,10 @@ public class ValueNode extends AbstractNode
 		else {
 			valueDisplay = (value != null) ? value.toString() : "<null>";
 		}
+		
+		if (valueDisplay.isBlank()) {
+			return NbBundle.getMessage(DLNavigatorPanel.class, "LBL_ValueNodeBlankValue", name); // NOI18N
+		}
 
 		return NbBundle.getMessage(DLNavigatorPanel.class, "LBL_ValueNode", name, valueDisplay); // NOI18N
 	}

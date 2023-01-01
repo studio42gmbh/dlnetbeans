@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLAttribute;
+import de.s42.dl.DLEnum;
 import de.s42.dl.DLType;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
@@ -54,8 +55,13 @@ public class TypeNodeChildFactory extends ChildFactory<Object>
 	@Override
 	protected boolean createKeys(List<Object> list)
 	{
-		list.addAll(type.getParents());
-		list.addAll(type.getOwnAttributes());
+		if (type instanceof DLEnum) {
+			list.addAll(((DLEnum)type).getValues());
+		}
+		else {
+			list.addAll(type.getParents());
+			list.addAll(type.getOwnAttributes());
+		}
 
 		return true;
 	}
@@ -69,6 +75,10 @@ public class TypeNodeChildFactory extends ChildFactory<Object>
 		
 		if (entry instanceof DLType) {		
 			return new TypeNode((DLType)entry);
+		}
+
+		if (type instanceof DLEnum && entry != null) {		
+			return new ValueNode(entry.toString(), "");
 		}
 		
 		return null;		
