@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans.syntax;
 
 import static de.s42.dl.language.DLConstants.MIME_TYPE;
+import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.syntax.hints.AbstractDLParsingHint;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
@@ -95,7 +96,7 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 	}
 
 	@MimeRegistration(
-		mimeType = MIME_TYPE,
+		mimeType = DL_MIME_TYPE,
 		service = TaskFactory.class
 	)
 	public static class Factory extends TaskFactory

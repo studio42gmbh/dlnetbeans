@@ -41,10 +41,7 @@ import org.openide.loaders.MultiFileLoader;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
-import org.netbeans.modules.textmate.lexer.api.GrammarRegistration;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import org.openide.filesystems.MIMEResolver;
 
 @Messages({
@@ -114,23 +111,15 @@ import org.openide.filesystems.MIMEResolver;
 		position = 1400
 	)
 })
-/**
- * If you want to edit a textmate grammar use https://eeyo.io/iro/ To convert Visual Code is helpfule
- * https://marketplace.visualstudio.com/items?itemName=Togusa09.tmlanguage Learn about textmate grammars
- * https://macromates.com/manual/en/language_grammars Get regex right with https://regexr.com/
- */
-@GrammarRegistration(mimeType = DL_MIME_TYPE, grammar = "dl.tmLanguage.json")
 public class DLDataObject extends MultiDataObject
 {
-
-	private final static Logger log = LogManager.getLogger(DLDataObject.class.getName());
 
 	public static final String DL_MIME_TYPE = DLConstants.MIME_TYPE;
 
 	public DLDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException
 	{
 		super(pf, loader);
-		registerEditor(DL_MIME_TYPE, false);
+		registerEditor(DL_MIME_TYPE, true);
 	}
 
 	@Override

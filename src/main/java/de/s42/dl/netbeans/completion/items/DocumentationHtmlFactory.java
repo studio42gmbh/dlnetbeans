@@ -109,6 +109,7 @@ public class DocumentationHtmlFactory
 
 		String typeKindDisplay = (type instanceof EnumType) ? "Enum" : "Type";
 
+		// Heading
 		builder
 			.append("<h2>")
 			.append(typeKindDisplay)
@@ -116,6 +117,7 @@ public class DocumentationHtmlFactory
 			.append(type.getIdentifier())
 			.append("</h2>");
 
+		// Print list if values
 		if (type instanceof EnumType) {
 			builder
 				.append("<p>")
@@ -123,6 +125,7 @@ public class DocumentationHtmlFactory
 				.append("</p>");
 		}
 
+		// Location
 		builder
 			.append("<p>Defined in module <b>")
 			.append(type.getModuleId())
@@ -140,6 +143,7 @@ public class DocumentationHtmlFactory
 				.append("</b></p>");
 		}
 
+		// Link to help
 		builder
 			.append("<p><a href='https://github.com/studio42gmbh/dl/wiki/2-Types'>Read more about types in DL</a>");
 

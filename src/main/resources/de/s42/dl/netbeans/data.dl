@@ -1,31 +1,24 @@
-// <editor-fold defaultstate="collapsed" desc="Generated Code">                          
 /*
  * For further infos on DL read https://github.com/studio42gmbh/dl/wiki
  */
-// </editor-fold>
+assert $env.os ~= ".*Windows.*" : "Needs Windows to work properly but OS is " + $env.os;
 
-type NewType extends Object
+require "dl:standard/base.dl";
+
+enum MyEnum { Yes, No, Perhaps }
+
+type MyType extends Object
 {
-  int x @required : 42;
+  int x @required;
 }
 
-NewType t @export(t : 4, y : "gff") { 
-  x : 21;
-}
+int answer		: 42;
+String name		: "Data Language";
+double PI		: 3.14;
+boolean awake	: true;
+MyEnum mood		: Perhaps;
 
-int x :	42;
-String name : "";
-double score : -3.14;
-boolean awake :	true;
-
-// ok das ist mal nice!
-annotation contains extern false;
-
-int x : $ref.name;
-
-sgs x : 0x4;
-
-type Loko extends Object contains Object
-{
-	int x : $a | $b & $c & $d * 3 - $e + 6 & $f / 6;
+// An exported instance of MyType
+MyType data @export { 
+  x : $answer;
 }
