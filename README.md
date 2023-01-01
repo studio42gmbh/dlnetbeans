@@ -24,4 +24,19 @@ Benjamin
 * Download DL https://github.com/studio42gmbh/dl
 * Download DL UI https://github.com/studio42gmbh/dlui
 
-TODO
+
+## Features
+
+* Coloring
+* Indentation / Refactoring
+* Syntax Checking
+* Semantic Checking
+* Auto Completion
+* Navigator shows "compiled" data
+
+
+## Screenshots
+
+![Screenshot Netbeans](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-01-dlnetbeans.png)
+![Screenshot Options Coloring](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-02-dlnetbeans.png)
+![Screenshot Options Indenting](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-03-dlnetbeans.png)
