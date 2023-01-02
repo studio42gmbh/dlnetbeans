@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,20 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-/**
- * This loads the file data.dl as template into the New File ...
- */
-@TemplateRegistration(
-	folder = "Other",
-	content = "data.dl",
-	displayName = "#LBL_TemplateDisplay",
-	description = "description.txt"
-)
-package de.s42.dl.netbeans;
+package de.s42.dl.netbeans.editing.api;
 
-import org.netbeans.api.templates.TemplateRegistration;
+import javax.swing.JPanel;
+import org.openide.loaders.DataObject;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public interface DLEditor
+{
+	public JPanel getEditorPanel(DataObject dataObject);
+	
+	public boolean canEdit(DataObject dataObject);
+	
+	public String getDisplay();
+}

@@ -6,6 +6,9 @@
 	<artifactId>dlnetbeans</artifactId>
 	<version>0.1</version>
 	<packaging>nbm</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>
@@ -15,6 +18,9 @@
 				<extensions>true</extensions>
 				<configuration>
 					<useOSGiDependencies>false</useOSGiDependencies>
+					<publicPackages>
+						<publicPackage>de.s42.dl.netbeans.editing</publicPackage>
+					</publicPackages>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -181,11 +187,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.netbeans.api</groupId>
-			<artifactId>org-netbeans-modules-textmate-lexer</artifactId>
-			<version>RELEASE160</version>
-		</dependency>
-		<dependency>
-			<groupId>org.netbeans.api</groupId>
 			<artifactId>org-openide-loaders</artifactId>
 			<version>RELEASE160</version>
 		</dependency>
@@ -235,7 +236,4 @@
 			<version>RELEASE160</version>
 		</dependency>
 	</dependencies>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 </project>

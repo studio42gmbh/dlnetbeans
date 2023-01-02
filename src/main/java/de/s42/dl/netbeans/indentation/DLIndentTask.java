@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.indentation;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import javax.swing.text.BadLocationException;
 import org.netbeans.modules.editor.indent.spi.Context;
 import org.netbeans.modules.editor.indent.spi.ExtraLock;
@@ -36,24 +34,21 @@ import org.netbeans.modules.editor.indent.spi.IndentTask;
  *
  * @author Benjamin Schiller
  */
-public class DLIndentTask implements IndentTask/*, Lookup.Provider*/ {
-
-	private final static Logger log = LogManager.getLogger(DLIndentTask.class.getName());
+public class DLIndentTask implements IndentTask
+{
 
 	protected final DLIndenter indenter;
-	//private Lookup lookup;
 
 	public DLIndentTask(Context context)
 	{
 		assert context != null;
 
 		indenter = new DLIndenter(context);
-		//lookup = Lookups.singleton(indenter.createFormattingContext()	);
 	}
 
 	@Override
 	public void reindent() throws BadLocationException
-	{		
+	{
 		indenter.reindent();
 	}
 
@@ -62,11 +57,4 @@ public class DLIndentTask implements IndentTask/*, Lookup.Provider*/ {
 	{
 		return null;
 	}
-	/*
-	@Override
-	public Lookup getLookup()
-	{
-		return lookup;
-	}
-	 */
 }

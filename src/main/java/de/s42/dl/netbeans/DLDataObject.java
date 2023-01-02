@@ -26,6 +26,7 @@
 package de.s42.dl.netbeans;
 
 import de.s42.dl.language.DLConstants;
+import static de.s42.dl.language.DLConstants.LANGUAGE_SHORT_NAME;
 import de.s42.dl.language.DLFileType;
 import java.io.IOException;
 import org.netbeans.core.spi.multiview.MultiViewElement;
@@ -133,7 +134,7 @@ public class DLDataObject extends MultiDataObject
 		iconBase = "de/s42/dl/netbeans/dl-icon.png",
 		mimeType = DL_MIME_TYPE,
 		persistenceType = TopComponent.PERSISTENCE_ONLY_OPENED,
-		preferredID = "DL",
+		preferredID = LANGUAGE_SHORT_NAME,
 		position = 201
 	)
 	@Messages("LBL_DL_EDITOR=Source")

@@ -199,7 +199,7 @@ public class DLFoldManager implements FoldManager
 	/**
 	 * This factory creates FoldManager instances and gets registered in the Netbeans system to activate the folding
 	 * handling ATTENTION: It is important to have this Factory inside the manager otherwise the factory will not be
-	 * recignized by Netbeans!
+	 * recognized by Netbeans!
 	 */
 	@MimeRegistration(
 		mimeType = "", 

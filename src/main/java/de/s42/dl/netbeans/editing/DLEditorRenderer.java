@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,39 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-/**
- * This loads the file data.dl as template into the New File ...
- */
-@TemplateRegistration(
-	folder = "Other",
-	content = "data.dl",
-	displayName = "#LBL_TemplateDisplay",
-	description = "description.txt"
-)
-package de.s42.dl.netbeans;
+package de.s42.dl.netbeans.editing;
 
-import org.netbeans.api.templates.TemplateRegistration;
+import de.s42.dl.netbeans.editing.api.DLEditor;
+import java.awt.Component;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+import org.openide.util.NbBundle;
+
+/**
+ *
+ * @author Benjamin Schiller
+ */
+public class DLEditorRenderer extends DefaultListCellRenderer
+{
+
+	protected final static String NOTHING_SELECTED = NbBundle.getMessage(DLEditorRenderer.class, "DLEditorRendererEmptyDisplay");
+
+	@Override
+	public Component getListCellRendererComponent(
+		JList<?> list,
+		Object value,
+		int index,
+		boolean isSelected,
+		boolean cellHasFocus)
+	{
+		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+		if (value == null) {
+			setText(NOTHING_SELECTED);
+		} else if (value instanceof DLEditor) {
+			setText(((DLEditor) value).getDisplay());
+		}
+
+		return this;
+	}
+}

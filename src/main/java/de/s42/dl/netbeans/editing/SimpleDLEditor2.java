@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,63 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.indentation;
+package de.s42.dl.netbeans.editing;
 
+import de.s42.dl.netbeans.editing.api.DLEditor;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
-import org.netbeans.modules.editor.indent.spi.Context;
-import org.netbeans.modules.editor.indent.spi.IndentTask;
+import org.openide.loaders.DataObject;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author Benjamin Schiller
  */
-@MimeRegistration(mimeType = DL_MIME_TYPE, service = IndentTask.Factory.class)
-public class DLIndentTaskFactory implements IndentTask.Factory
+@MimeRegistration(mimeType = DL_MIME_TYPE, service = DLEditor.class, position = 1001)
+public class SimpleDLEditor2 implements DLEditor
 {
 
+	public final static String EDITOR_EDIT_ENDING = "test.project.dl";
+
+	private final static Logger log = LogManager.getLogger(SimpleDLEditor2.class.getName());
+
+	protected final static String DISPLAY = NbBundle.getMessage(SimpleDLEditor2.class, "Simple2_DLEditorDisplay");
+
+	/**
+	 * This editor is activated if the DL file ends with .project.dl
+	 *
+	 * @param dataObject
+	 * @return
+	 */
 	@Override
-	public IndentTask createTask(Context context)
+	public boolean canEdit(DataObject dataObject)
 	{
-		return new DLIndentTask(context);
+		assert dataObject != null;
+
+		String fileName = dataObject.getPrimaryFile().getNameExt();
+
+		return fileName.endsWith(EDITOR_EDIT_ENDING);
+	}
+
+	@Override
+	public String getDisplay()
+	{
+		return DISPLAY;
+	}
+
+	@Override
+	public JPanel getEditorPanel(DataObject dataObject)
+	{
+		assert dataObject != null;
+
+		JPanel panel = new JPanel();
+
+		panel.add(new JLabel("Simple2:" + dataObject.getName()));
+
+		return panel;
 	}
 }
