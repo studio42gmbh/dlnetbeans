@@ -42,8 +42,10 @@ import de.s42.dl.netbeans.editing.api.DLEditor;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Box;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
@@ -101,6 +103,16 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 				selectEditor.setEnabled(false);
 			}
 		}
+
+		// Setup toolbar - filler code is a bit specific
+		// see also https://github.com/apache/netbeans/blob/4ae01ea70f4530443343beee3292e880a74099bd/profiler/lib.profiler.ui/src/org/netbeans/lib/profiler/ui/components/ProfilerToolbar.java
+		toolbar.addSeparator();
+		toolbar.add(selectEditor);
+		toolbar.addSeparator();
+		Dimension minDim = new Dimension(0, 0);
+		Dimension maxDim = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		toolbar.add(new Box.Filler(minDim, minDim, maxDim));
+		toolbar.repaint();
 	}
 
 	protected ListCellRenderer createSelectEditorRenderer()
@@ -122,9 +134,19 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
     private void initComponents()
     {
 
+        selectEditor = new javax.swing.JComboBox<>();
         editorContainer = new javax.swing.JPanel();
         emptyInfo = new javax.swing.JLabel();
-        selectEditor = new javax.swing.JComboBox<>();
+
+        selectEditor.setPreferredSize(new java.awt.Dimension(150, 20));
+        selectEditor.setRenderer(createSelectEditorRenderer());
+        selectEditor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                selectEditorActionPerformed(evt);
+            }
+        });
 
         editorContainer.setToolTipText(org.openide.util.NbBundle.getMessage(DLEditorPanel.class, "DLEditorPanel.editorContainer.toolTipText")); // NOI18N
 
@@ -146,36 +168,19 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
             editorContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, editorContainerLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(emptyInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                .addComponent(emptyInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
                 .addContainerGap())
         );
-
-        selectEditor.setRenderer(createSelectEditorRenderer());
-        selectEditor.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                selectEditorActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(editorContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(selectEditor, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(244, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(selectEditor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(editorContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(editorContainer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
