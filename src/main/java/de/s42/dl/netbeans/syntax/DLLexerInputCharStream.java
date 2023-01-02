@@ -81,7 +81,7 @@ public class DLLexerInputCharStream implements CharStream
 	public int LA(int count)
 	{
 		if (count == 0) {
-			return 0; //the behaviour is not defined
+			throw new UnsupportedOperationException("Can't LA with 0");
 		}
 
 		int c = 0;
@@ -111,6 +111,7 @@ public class DLLexerInputCharStream implements CharStream
 	@Override
 	public void release(int marker)
 	{
+		// What is done here?
 	}
 
 	@Override

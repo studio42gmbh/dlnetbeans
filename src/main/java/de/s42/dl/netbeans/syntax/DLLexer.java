@@ -66,26 +66,18 @@ public class DLLexer implements Lexer<DLTokenId>
 		}
 	}
 
-	private org.antlr.v4.runtime.Token preFetchedToken = null;
-
 	@Override
-	public org.netbeans.api.lexer.Token<DLTokenId> nextToken()
+	public Token<DLTokenId> nextToken()
 	{
-		org.antlr.v4.runtime.Token nextToken;
-		if (preFetchedToken != null) {
-			nextToken = preFetchedToken;
-			lexer.getInputStream().seek(preFetchedToken.getStopIndex() + 1);
-			preFetchedToken = null;
-		} else {
-			nextToken = lexer.nextToken();
-		}
-		int tokenType = nextToken.getType();		
-	
+		org.antlr.v4.runtime.Token nextToken = lexer.nextToken();
+		
+		int tokenType = nextToken.getType();
+
 		switch (tokenType) {
 			case EOF:
 				return null;
 			case MULTILINE_COMMENT:
-			case SINGLELINE_COMMENT:				
+			case SINGLELINE_COMMENT:
 				return token(COMMENT);
 			case WS:
 				return token(WHITESPACE);
@@ -135,21 +127,12 @@ public class DLLexer implements Lexer<DLTokenId>
 			case MINUS:
 			case MUL:
 			case DIV:
-			case POW:				
+			case POW:
 				return token(OPERATOR);
+			case UNKNOWN:
 			default:
 				return token(ERROR);
 		}
-	}
-
-	protected org.netbeans.api.lexer.Token<DLTokenId> collate(int tokenType, DLTokenId tokenId)
-	{
-		preFetchedToken = lexer.nextToken();
-		while (preFetchedToken.getType() == tokenType) {
-			preFetchedToken = lexer.nextToken();
-		}
-		lexer.getInputStream().seek(preFetchedToken.getStartIndex());
-		return token(tokenId);
 	}
 
 	@Override
@@ -168,7 +151,7 @@ public class DLLexer implements Lexer<DLTokenId>
 		input.markToken();
 		return tokenFactory.createToken(id);
 	}
-	
+
 	private static class LexerState
 	{
 

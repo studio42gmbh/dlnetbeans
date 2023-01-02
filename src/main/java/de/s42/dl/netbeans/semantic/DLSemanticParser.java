@@ -36,6 +36,7 @@ import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.dl.netbeans.semantic.model.EnumType;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.netbeans.syntax.DLSyntaxParser;
+import de.s42.dl.parser.DLHrfParsing;
 import de.s42.dl.parser.DLParser;
 import de.s42.dl.parser.DLParser.AliasNameContext;
 import de.s42.dl.parser.DLParser.ContainsTypeNameContext;
@@ -239,7 +240,7 @@ public class DLSemanticParser extends DLParserBaseListener
 		assert ctx != null;
 
 		// Retrieve the module id
-		String requiredModuleId = ctx.requireModule().getText();
+		String requiredModuleId = DLHrfParsing.getRequireModuleId(ctx.requireModuleId());
 
 		// This core is created to have an anchor for the resolvers
 		LibraryCoreResolver libResolver = (LibraryCoreResolver) DefaultCore.LIBRARY_RESOLVER;
@@ -265,7 +266,7 @@ public class DLSemanticParser extends DLParserBaseListener
 					core
 				);
 			} catch (InvalidModule | IOException ex) {
-				parserResult.addError("Library module " + ctx.requireModule().getText() + " could not get parsed - " + ex.getMessage(), ctx);
+				parserResult.addError("Library module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);
 			}
 		} else if (fileResolver.canParse(core, requiredModuleId, null)) {
@@ -284,13 +285,13 @@ public class DLSemanticParser extends DLParserBaseListener
 					core
 				);
 			} catch (InvalidModule | IOException ex) {
-				parserResult.addError("File module " + ctx.requireModule().getText() + " could not get parsed - " + ex.getMessage(), ctx);
+				parserResult.addError("File module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);
 			}
 
 			fileResolver.setLocalPathInCore(core, oldLocalPath);
 		} else {
-			parserResult.addError("Resolver module " + ctx.requireModule().getText() + " could not get resolved", ctx);
+			parserResult.addError("Resolver module " + requiredModuleId + " could not get resolved", ctx);
 		}
 	}
 }
