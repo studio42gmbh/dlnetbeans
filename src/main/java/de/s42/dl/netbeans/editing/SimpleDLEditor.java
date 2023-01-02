@@ -1,4 +1,3 @@
-
 // <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
@@ -47,25 +46,27 @@ import org.openide.util.NbBundle;
 @MimeRegistration(mimeType = DL_MIME_TYPE, service = DLEditor.class, position = 1000)
 public class SimpleDLEditor implements DLEditor
 {
-	
+
 	public final static String EDITOR_EDIT_ENDING = ".project.dl";
 
 	private final static Logger log = LogManager.getLogger(SimpleDLEditor.class.getName());
 
 	protected final static String DISPLAY = NbBundle.getMessage(SimpleDLEditor.class, "Simple_DLEditorDisplay");
-	
+
 	/**
 	 * This editor is activated if the DL file ends with .project.dl
+	 *
 	 * @param dataObject
-	 * @return 
+	 *
+	 * @return
 	 */
 	@Override
 	public boolean canEdit(DataObject dataObject)
 	{
 		assert dataObject != null;
-		
+
 		String fileName = dataObject.getPrimaryFile().getNameExt();
-		
+
 		return fileName.endsWith(EDITOR_EDIT_ENDING);
 	}
 
@@ -74,14 +75,13 @@ public class SimpleDLEditor implements DLEditor
 	{
 		return DISPLAY;
 	}
-	
+
 	@Override
 	public JPanel getEditorPanel(DataObject dataObject)
 	{
 		assert dataObject != null;
 
 		//log.debug("getEditorPanel");
-
 		JPanel panel = new JPanel();
 
 		panel.add(new JLabel("Simple:" + dataObject.getName()));

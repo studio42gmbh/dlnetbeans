@@ -32,7 +32,7 @@ import javax.swing.JList;
 import org.openide.util.NbBundle;
 
 /**
- *
+ * Renders a list of DLEditors
  * @author Benjamin Schiller
  */
 public class DLEditorRenderer extends DefaultListCellRenderer

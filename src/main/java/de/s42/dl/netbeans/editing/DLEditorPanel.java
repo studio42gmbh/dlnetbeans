@@ -86,7 +86,6 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 
 		// Add all editors that could edit this DL
 		for (DLEditor editor : editors) {
-
 			if (editor.canEdit(dataObject)) {
 				selectEditor.addItem(editor);
 			}
@@ -190,6 +189,7 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 
 			final JPanel editPanel = editor.getEditorPanel(dataObject);
 
+			// Insert the new editor within the swing thread and update
 			SwingUtilities.invokeLater(() -> {
 				editorContainer.removeAll();
 				editorContainer.setLayout(new BorderLayout());
@@ -276,5 +276,4 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 	{
 		return CloseOperationState.STATE_OK;
 	}
-
 }

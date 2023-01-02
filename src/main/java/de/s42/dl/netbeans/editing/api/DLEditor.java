@@ -34,9 +34,10 @@ import org.openide.loaders.DataObject;
  */
 public interface DLEditor
 {
+
 	public JPanel getEditorPanel(DataObject dataObject);
-	
+
 	public boolean canEdit(DataObject dataObject);
-	
+
 	public String getDisplay();
 }
