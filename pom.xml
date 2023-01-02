@@ -19,7 +19,7 @@
 				<configuration>
 					<useOSGiDependencies>false</useOSGiDependencies>
 					<publicPackages>
-						<publicPackage>de.s42.dl.netbeans.editing</publicPackage>
+					 <publicPackage>de.s42.dl.netbeans.editing.api</publicPackage>
 					</publicPackages>
 				</configuration>
 			</plugin>
