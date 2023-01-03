@@ -25,10 +25,15 @@
 //</editor-fold>
 package de.s42.dl.netbeans.indentation;
 
+import de.s42.dl.netbeans.util.FileObjectHelper;
+import de.s42.dl.parser.DLLexer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.util.StringTokenizer;
 import javax.swing.text.BadLocationException;
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.editor.indent.api.IndentUtils;
 import org.netbeans.modules.editor.indent.spi.Context;
@@ -59,7 +64,6 @@ public class DLIndenter
 		BaseDocument document = getDocument();
 
 		//log.warn("reindent", context.caretOffset(), context.startOffset(), context.endOffset(), document.getStartPosition().getOffset(), document.getEndPosition().getOffset());
-
 		// Do a complete reindent
 		if (context.startOffset() == document.getStartPosition().getOffset()
 			&& context.endOffset() == document.getEndPosition().getOffset() - 1) {
@@ -67,79 +71,62 @@ public class DLIndenter
 		}
 	}
 
-	@SuppressWarnings("ConvertToStringSwitch")
 	public void completeReindent() throws BadLocationException
 	{
-		//log.debug("completeReindent");
-		
-		int indentLevel = IndentUtils.indentLevelSize(context.document());
-
+		// Get the text safely
 		BaseDocument document = getDocument();
 
-		// Read current document content into a string
-		document.readLock();
-		String text = document.getText(document.getStartPosition().getOffset(), document.getEndPosition().getOffset());
-		document.readUnlock();
+		String text = FileObjectHelper.getText(document);
+		int indentLevel = IndentUtils.indentLevelSize(document);
 
-		// Update the indentations
-		document.extWriteLock();
+		// Prepare the lexer
+		DLLexer lexer = new DLLexer(CharStreams.fromString(text));
+		lexer.removeErrorListeners();
+		TokenStream tokens = new BufferedTokenStream(lexer);
 
-		// Parse the document
-		StringTokenizer tok = new StringTokenizer(text, "{}\n", true);
+		// Iterate tokens from lexer
+		StringBuilder builder = new StringBuilder(text.length() * 3 / 2);
+		boolean justNewline = false;
 		int indent = 0;
-		int position = document.getStartPosition().getOffset();
-		boolean beginLine = true;
-		while (tok.hasMoreTokens()) {
+		while (true) {
+			Token token = tokens.LT(1);
+			Token nextToken = tokens.LT(2);
 
-			String token = tok.nextToken();
+			//log.info("TOKEN : " + token);
+			// End of file
+			if (token.getType() == DLLexer.EOF) {
+				break;
+			}
 
-			// Indent by -1 on '}'
-			if (token.equals("}")) {
+			// Reduce indentation on }
+			if (nextToken.getType() == DLLexer.SCOPE_CLOSE) {
 				indent = Math.max(0, indent - 1);
-
+			}
+			
+			// If there was a new line before and it is not immediately followed by another newline -> add indent
+			if (justNewline && nextToken.getType() != DLLexer.NEWLINE) {
+				builder.append(IndentUtils.createIndentString(document, indent * indentLevel));
 			}
 
-			if (token.equals("\n")) {
-				beginLine = true;
-			} // Remove leading whitespaces and add indent tabs or expanded of it
-			else if (beginLine) {
-
-				if (needsBeginLineReindent(token, indent)) {
-
-					// @todo Could be done more elegant without string changes 
-					int len = token.length();
-
-					token = token.stripLeading();
-
-					int totalIndent = indent * indentLevel;
-
-					// Cheap way of recognizing comment stars ...
-					if (token.startsWith("*")) {
-						totalIndent++;
-					}
-
-					// Indent tabs
-					StringBuilder builder = new StringBuilder(len + 64);
-					builder.append(IndentUtils.createIndentString(document, totalIndent));
-					builder.append(token);
-					token = builder.toString();
-
-					// Replace token in document
-					document.replace(position, len, token, null);
-				}
-				beginLine = false;
+			// Increase indentation on {
+			if (token.getType() == DLLexer.SCOPE_OPEN) {
+				indent += 1;
 			}
 
-			// Indent by +1 on '{'
-			if (token.endsWith("{")) {
-				indent++;
-			} // At a newline -> do begin line operation next token
+			// If it is not newline or a whitepace -> Just add the content
+			if (!justNewline || token.getType() != DLLexer.WHITESPACES) {
+				builder.append(token.getText());
+			}
 
-			// Keep track of the position
-			position += token.length();
+			// Newline sets justNewline for next iteration
+			justNewline = (token.getType() == DLLexer.NEWLINE);
+
+			// Proceed one token
+			tokens.consume();
 		}
 
-		document.extWriteUnlock();
+		// Replace the whole text safely
+		FileObjectHelper.replaceText(document, builder.toString());
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">

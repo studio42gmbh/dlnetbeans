@@ -30,6 +30,8 @@ import de.s42.log.Logger;
 import java.nio.file.Path;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import org.netbeans.editor.BaseDocument;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -56,6 +58,48 @@ public final class FileObjectHelper
 	}
 
 	/**
+	 * Safely returns the complete text of a document
+	 *
+	 * @param document
+	 *
+	 * @return
+	 */
+	public static String getText(BaseDocument document)
+	{
+		try {
+			document.readLock();
+			String text = document.getText(document.getStartPosition().getOffset(), document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1);
+			document.readUnlock();
+
+			return text;
+		} catch (BadLocationException ex) {
+			// Should not happen as the access happens in locked state
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * Replaces the complete text of the document safely
+	 *
+	 * @param document
+	 * @param text
+	 */
+	public static void replaceText(BaseDocument document, String text)
+	{
+		assert document != null;
+		assert text != null;
+
+		try {
+			document.extWriteLock();
+			document.replace(document.getStartPosition().getOffset(), document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1, text, null);
+			document.extWriteUnlock();
+		} catch (BadLocationException ex) {
+			// Should not happen as the access happens in locked state
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
 	 * Opens a file object and scrolls to the given line For full ui crazyness see
 	 * https://github.com/apache/netbeans/blob/c084119009d2e0f736f225d706bc1827af283501/ide/utilities/src/org/netbeans/modules/openfile/DefaultOpenFileImpl.java
 	 * For now this implements the minimal version - works fine so far
@@ -79,7 +123,14 @@ public final class FileObjectHelper
 		});
 	}
 
-	protected static void setLineInDocument(EditorCookie cookie, int offset, int retries)
+	/**
+	 * Ste the caret into a certain line in a document
+	 *
+	 * @param cookie
+	 * @param offset
+	 * @param retries
+	 */
+	public static void setLineInDocument(EditorCookie cookie, int offset, int retries)
 	{
 		assert cookie != null;
 

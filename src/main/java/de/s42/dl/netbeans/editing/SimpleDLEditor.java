@@ -27,6 +27,7 @@ package de.s42.dl.netbeans.editing;
 
 import de.s42.dl.netbeans.editing.api.DLEditor;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.dl.netbeans.util.FileObjectHelper;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import javax.swing.JButton;
@@ -113,8 +114,6 @@ public class SimpleDLEditor implements DLEditor
 		log.debug("OLD\n", text);
 
 		// Replace whole document
-		document.extWriteLock();
-		document.replace(0, document.getEndPosition().getOffset() - 1, "String t : 4;\n", null);
-		document.extWriteUnlock();
+		FileObjectHelper.replaceText(document, "String t : 4;\n");
 	}
 }

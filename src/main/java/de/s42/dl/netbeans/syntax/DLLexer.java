@@ -76,11 +76,31 @@ public class DLLexer implements Lexer<DLTokenId>
 		switch (tokenType) {
 			case EOF:
 				return null;
-			case MULTILINE_COMMENT:
-			case SINGLELINE_COMMENT:
-				return token(COMMENT);
-			case WS:
+			case WHITESPACES:
+			case NEWLINE:
 				return token(WHITESPACE);
+			case AT:
+			case COLON:
+			case SEMI_COLON:
+			case SCOPE_OPEN:
+			case SCOPE_CLOSE:
+			case PARENTHESES_OPEN:
+			case PARENTHESES_CLOSE:
+			case GENERIC_OPEN:
+			case GENERIC_CLOSE:
+			case COMMA:
+			case EQUALS:
+			case XOR:
+			case LIKE:
+			case NOT:
+			case AND:
+			case OR:
+			case PLUS:
+			case MINUS:
+			case MUL:
+			case DIV:
+			case POW:
+				return token(OPERATOR);
 			case KEYWORD_ANNOTATION:
 			case KEYWORD_ABSTRACT:
 			case KEYWORD_ALIAS:
@@ -107,28 +127,9 @@ public class DLLexer implements Lexer<DLTokenId>
 				return token(REFERENCE);
 			case SYMBOL:
 				return token(IDENTIFIER);
-			case AT:
-			case COLON:
-			case SEMI_COLON:
-			case SCOPE_OPEN:
-			case SCOPE_CLOSE:
-			case PARENTHESES_OPEN:
-			case PARENTHESES_CLOSE:
-			case GENERIC_OPEN:
-			case GENERIC_CLOSE:
-			case COMMA:
-			case EQUALS:
-			case XOR:
-			case LIKE:
-			case NOT:
-			case AND:
-			case OR:
-			case PLUS:
-			case MINUS:
-			case MUL:
-			case DIV:
-			case POW:
-				return token(OPERATOR);
+			case MULTILINE_COMMENT:
+			case SINGLELINE_COMMENT:
+				return token(COMMENT);
 			case UNKNOWN:
 			default:
 				return token(ERROR);

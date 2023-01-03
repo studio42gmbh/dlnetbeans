@@ -28,8 +28,6 @@ package de.s42.dl.netbeans.syntax;
 import de.s42.dl.DLCore;
 import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.exceptions.ReservedKeyword;
-import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
-import de.s42.dl.netbeans.semantic.DLSemanticCache;
 import de.s42.dl.netbeans.semantic.DLSemanticParser;
 import de.s42.dl.netbeans.syntax.hints.DLParsingError;
 import de.s42.dl.parser.DLLexer;
@@ -42,11 +40,9 @@ import javax.swing.text.StyledDocument;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.api.Task;
 import org.netbeans.modules.parsing.spi.ParseException;
@@ -64,11 +60,9 @@ public class DLSyntaxParser extends Parser
 
 	private final static Logger log = LogManager.getLogger(DLSyntaxParser.class.getName());
 
-	protected final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
-
 	private DLParserResult parserResult;
 
-	public static void parseContent(DLParserResult result, String moduleId, String content, ParserRuleContext overrideContext, DLCore core)
+	public static void parseContent(DLParserResult result, String moduleId, String content, DLCore core)
 	{
 		assert result != null;
 		assert content != null;
@@ -82,7 +76,7 @@ public class DLSyntaxParser extends Parser
 		lexer.addErrorListener(new DLParserErrorHandler(result));
 		parser.removeErrorListeners();
 		parser.addErrorListener(new DLParserErrorHandler(result));
-		parser.addParseListener(new DLSemanticParser(result, overrideContext, core, moduleId));
+		parser.addParseListener(new DLSemanticParser(result, core, moduleId));
 
 		// Process the parser rules
 		parser.data();
@@ -136,10 +130,6 @@ public class DLSyntaxParser extends Parser
 
 		parserResult = new DLParserResult(snapshot);
 		final FileObject fileObject = snapshot.getSource().getFileObject();
-		final String cacheKey = DLSemanticCache.getCacheKey(parserResult);
-
-		// Clear cache for this content
-		CACHE.clear(cacheKey);
 
 		try {
 
@@ -147,7 +137,7 @@ public class DLSyntaxParser extends Parser
 			String dlContent = String.valueOf(snapshot.getText());
 			String moduleId = Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
 
-			parseContent(parserResult, moduleId, dlContent, null, core);
+			parseContent(parserResult, moduleId, dlContent, core);
 
 		} // Special handling for reserved keyword - this might to be changed in DL parsing as this induces issues -> Should add errors but not throw
 		catch (ReservedKeyword ex) {

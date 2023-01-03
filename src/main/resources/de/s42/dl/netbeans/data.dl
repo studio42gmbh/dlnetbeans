@@ -9,7 +9,7 @@ enum MyEnum { Yes, No, Perhaps }
 
 type MyType extends Object
 {
-  int x @required;
+	int x @required;
 }
 
 int answer		: 42;
@@ -20,5 +20,5 @@ MyEnum mood		: Perhaps;
 
 // An exported instance of MyType
 MyType data @export { 
-  x : $answer;
+	x : $answer;
 }

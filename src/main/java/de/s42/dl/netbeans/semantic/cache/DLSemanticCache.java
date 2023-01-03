@@ -23,20 +23,19 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.semantic;
+package de.s42.dl.netbeans.semantic.cache;
 
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
-import de.s42.dl.netbeans.semantic.model.Type;
+import de.s42.dl.netbeans.semantic.model.ModuleEntry;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.modules.parsing.api.Snapshot;
@@ -54,9 +53,24 @@ public class DLSemanticCache
 
 	private final static Logger log = LogManager.getLogger(DLSemanticCache.class.getName());
 
-	protected final Map<String, Set<Type>> typesByKey = Collections.synchronizedMap(new HashMap<>());
+	//protected final Map<String, Set<Type>> typesByKey = Collections.synchronizedMap(new HashMap<>());
+	protected final Map<String, DLSemanticCacheNode> nodesByKey = Collections.synchronizedMap(new HashMap<>());
 
 	// <editor-fold desc="public static String getCacheKey(.)" defaultstate="collapsed">
+	public static String getCacheKey(String moduleId)
+	{
+		assert moduleId != null;
+
+		// Check if the id refs a valid path -> If so return the absolute normalized version of it
+		Path modulePath = Path.of(moduleId);		
+		if (Files.isRegularFile(modulePath)) {
+			return modulePath.toAbsolutePath().normalize().toString();
+		}
+		
+		// If a module id does not represent a valid file -> return the given id as key
+		return moduleId;
+	}
+
 	public static String getCacheKey(Document document)
 	{
 		assert document != null;
@@ -84,86 +98,35 @@ public class DLSemanticCache
 	{
 		assert fileObject != null;
 
-		return fileObject.getPath();
+		return Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
 	}
 	//</editor-fold>
 
-	public synchronized boolean hasType(String key, String typeName)
+	public DLSemanticCacheNode createCacheNode(String key, ModuleEntry module)
 	{
-		assert key != null;
-		assert typeName != null;
-
-		Set<Type> types = typesByKey.get(key);
-
-		if (types == null) {
-			return false;
-		}
-
-		return types.stream().anyMatch((type) -> {
-			return type.getIdentifier().equals(typeName);
-		});
+		return new DLSemanticCacheModule(this, key, module);
 	}
 
-	public List<Type> findTypes(String key, String filter, int caretOffset)
-	{
-		assert key != null;
-		assert filter != null;
-
-		Set<Type> types = typesByKey.get(key);
-
-		if (types == null) {
-			return Collections.EMPTY_LIST;
-		}
-
-		// Filter out types which match the start with filter and are defined before the offset
-		List<Type> result = types.stream().filter((type) -> {
-			return // Empty filter or match start case independent
-				(filter.isBlank() || type.getIdentifier().toLowerCase().startsWith(filter.toLowerCase()))
-				// End of type location before caret offset
-				&& type.getEndOffset() < caretOffset;
-		}).toList();
-
-		return Collections.unmodifiableList(result);
-	}
-
-	public List<Type> getTypes(String key)
+	public boolean hasCacheNode(String key)
 	{
 		assert key != null;
 
-		//log.debug("getTypeNames", key);
-		Set<Type> types = typesByKey.get(key);
-
-		if (types == null) {
-			return Collections.EMPTY_LIST;
-		}
-
-		return Collections.unmodifiableList(new ArrayList(types));
+		return nodesByKey.containsKey(key);
 	}
 
-	public synchronized void addType(String key, Type type)
-	{
-		assert key != null;
-		assert type != null;
-
-		//log.debug("addTypeName", key, typeName);
-		Set<Type> types = typesByKey.get(key);
-
-		if (types == null) {
-			types = Collections.synchronizedSet(new HashSet<>());
-			typesByKey.put(key, types);
-		}
-
-		types.add(type);
-	}
-
-	public synchronized void clear(String key)
+	public Optional<DLSemanticCacheNode> getCacheNode(String key)
 	{
 		assert key != null;
 
-		//log.debug("clearTypeNames", key);
-		typesByKey.remove(key);
+		return Optional.ofNullable(nodesByKey.get(key));
 	}
 
-	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	//</editor-fold>
+	public DLSemanticCacheNode setCacheNode(DLSemanticCacheNode node)
+	{
+		assert node != null;
+
+		log.info("setCacheNode", node);
+
+		return nodesByKey.put(node.getKey(), node);
+	}
 }

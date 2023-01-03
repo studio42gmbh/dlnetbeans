@@ -23,24 +23,22 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-
 package de.s42.dl.netbeans.semantic.model;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.Objects;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public abstract class Entry 
+public abstract class Entry
 {
 
 	private final static Logger log = LogManager.getLogger(Entry.class.getName());
-	
-	protected int originalLine;
-	protected int originalPosition;
+
 	protected int startLine;
 	protected int startPosition;
 	protected int startOffset;
@@ -49,7 +47,32 @@ public abstract class Entry
 	protected int endOffset;
 	protected String identifier;
 	protected String moduleId;
-	
+
+	protected Entry(String identifier, ParserRuleContext locationContext, String moduleId)
+	{
+		assert identifier != null;
+		assert moduleId != null;
+
+		this.moduleId = moduleId;
+		this.identifier = identifier;
+
+		if (locationContext != null) {
+			startLine = locationContext.start.getLine();
+			startPosition = locationContext.start.getCharPositionInLine() + 1;
+			startOffset = locationContext.start.getStartIndex();
+			endLine = locationContext.start.getLine();
+			endOffset = locationContext.start.getStopIndex();
+			endPosition = locationContext.start.getCharPositionInLine() + 1 + endOffset - startOffset;
+		} else {
+			startLine = 0;
+			startPosition = 0;
+			startOffset = 0;
+			endLine = 0;
+			endOffset = 0;
+			endPosition = 0;
+		}
+	}
+
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	public String getIdentifier()
 	{
@@ -129,26 +152,6 @@ public abstract class Entry
 	public void setModuleId(String moduleId)
 	{
 		this.moduleId = moduleId;
-	}
-
-	public int getOriginalLine()
-	{
-		return originalLine;
-	}
-
-	public void setOriginalLine(int originalLine)
-	{
-		this.originalLine = originalLine;
-	}
-
-	public int getOriginalPosition()
-	{
-		return originalPosition;
-	}
-
-	public void setOriginalPosition(int originalPosition)
-	{
-		this.originalPosition = originalPosition;
 	}
 	//</editor-fold>
 

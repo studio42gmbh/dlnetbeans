@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic;
 
+import de.s42.dl.netbeans.semantic.cache.DLSemanticCache;
 import de.s42.base.strings.StringHelper;
 import de.s42.dl.DLCore;
 import de.s42.dl.core.DefaultCore;
@@ -32,8 +33,10 @@ import de.s42.dl.core.resolvers.FileCoreResolver;
 import de.s42.dl.core.resolvers.LibraryCoreResolver;
 import de.s42.dl.exceptions.InvalidModule;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.dl.netbeans.semantic.cache.DLSemanticCacheNode;
 import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.dl.netbeans.semantic.model.EnumType;
+import de.s42.dl.netbeans.semantic.model.ModuleEntry;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.netbeans.syntax.DLSyntaxParser;
 import de.s42.dl.parser.DLHrfParsing;
@@ -66,12 +69,12 @@ public class DLSemanticParser extends DLParserBaseListener
 	protected final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
 	protected final DLParserResult parserResult;
-	protected final String cacheKey;
-	protected final ParserRuleContext overrideContext;
+	//protected final String cacheKey;
 	protected final DLCore core;
 	protected final String moduleId;
+	protected final DLSemanticCacheNode cacheNode;
 
-	public DLSemanticParser(DLParserResult parserResult, ParserRuleContext overrideContext, DLCore core, String moduleId)
+	public DLSemanticParser(DLParserResult parserResult, DLCore core, String moduleId)
 	{
 		assert parserResult != null;
 		assert core != null;
@@ -80,14 +83,12 @@ public class DLSemanticParser extends DLParserBaseListener
 		this.core = core;
 		this.moduleId = moduleId;
 		this.parserResult = parserResult;
-		this.overrideContext = overrideContext;
 
-		cacheKey = DLSemanticCache.getCacheKey(parserResult);
-	}
-
-	protected ParserRuleContext getOverridableContext(ParserRuleContext ctx)
-	{
-		return (overrideContext != null) ? overrideContext : ctx;
+		String cacheKey = DLSemanticCache.getCacheKey(moduleId);		
+		ModuleEntry module = new ModuleEntry(moduleId);
+		
+		// This cache node will be filled while not being in the cache yte -> after scannning the whole document it will be published
+		cacheNode = CACHE.createCacheNode(cacheKey, module);
 	}
 
 	protected void validateTypeNameContext(ParserRuleContext ctx)
@@ -97,33 +98,30 @@ public class DLSemanticParser extends DLParserBaseListener
 		String typeName = ctx.getText();
 
 		// Error: Type must be defined in this context
-		if (!CACHE.hasType(cacheKey, typeName)) {
+		if (!cacheNode.hasType(typeName, ctx.getStart().getStartIndex(), true)) {
 			parserResult.addError("Type " + typeName + " is not defined", ctx);
 		}
 	}
 
 	protected Type addTypeDefinition(ParserRuleContext context, boolean warnOnLowerCase, Type aliasOf)
 	{
-		assert cacheKey != null;
 		assert context != null;
 
 		String typeName = context.getText();
 
 		// Error: Dont allow double definitions
-		if (CACHE.hasType(cacheKey, typeName)) {
+		if (cacheNode.hasType(typeName, context.getStart().getStartIndex(), true)) {
 			parserResult.addError("Type " + typeName + " is already defined", context);
 		}
 
 		Type type = new Type(
 			typeName,
-			getOverridableContext(context),
+			context,
 			moduleId,
-			context.getStart().getLine(),
-			context.getStart().getCharPositionInLine() + 1,
 			aliasOf
 		);
 
-		CACHE.addType(cacheKey, type);
+		cacheNode.addType(type);
 
 		// Warning: Types simple name should start with an uppercase letter
 		if (warnOnLowerCase && StringHelper.isLowerCaseFirst(type.getSimpleName())) {
@@ -135,27 +133,24 @@ public class DLSemanticParser extends DLParserBaseListener
 
 	protected EnumType addEnumDefinition(ParserRuleContext context, List<String> values, boolean warnOnLowerCase, EnumType aliasOf)
 	{
-		assert cacheKey != null;
 		assert context != null;
 
 		String enumName = context.getText();
 
 		// Error: Dont allow double definitions
-		if (CACHE.hasType(cacheKey, enumName)) {
+		if (cacheNode.hasType(enumName,context.getStart().getStartIndex(), true)) {
 			parserResult.addError("Enum " + enumName + " is already defined", context);
 		}
 
 		EnumType enumType = new EnumType(
 			enumName,
 			values,
-			getOverridableContext(context),
+			context,
 			moduleId,
-			context.getStart().getLine(),
-			context.getStart().getCharPositionInLine() + 1,
 			aliasOf
 		);
 
-		CACHE.addType(cacheKey, enumType);
+		cacheNode.addType(enumType);
 
 		// Warning: Types simple name should start with an uppercase letter
 		if (warnOnLowerCase && StringHelper.isLowerCaseFirst(enumType.getSimpleName())) {
@@ -165,6 +160,13 @@ public class DLSemanticParser extends DLParserBaseListener
 		return enumType;
 	}
 
+	@Override
+	public void exitData(DLParser.DataContext ctx)
+	{
+		// After successful parsing > Update cache node
+		CACHE.setCacheNode(cacheNode);		
+	}
+	
 	@Override
 	public void exitEnumDefinition(DLParser.EnumDefinitionContext ctx)
 	{
@@ -256,15 +258,21 @@ public class DLSemanticParser extends DLParserBaseListener
 			try {
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
 				String resolvedModuleId = libResolver.resolveModuleId(core, requiredModuleId);
+				
+				// Just immediatly parse the required module if it has not been parsed already
+				if (!CACHE.hasCacheNode(resolvedModuleId)) {
+				
+					// @todo merge the results with according prefix into this result
+					DLSyntaxParser.parseContent(
+						result,
+						resolvedModuleId,
+						libResolver.getContent(core, requiredModuleId),
+						core
+					);
+				}
 
-				// @todo merge the results with according prefix into this result
-				DLSyntaxParser.parseContent(
-					result,
-					resolvedModuleId,
-					libResolver.getContent(core, requiredModuleId),
-					getOverridableContext(ctx),
-					core
-				);
+				cacheNode.addNodeReference(resolvedModuleId, ctx);			
+				
 			} catch (InvalidModule | IOException ex) {
 				parserResult.addError("Library module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);
@@ -276,14 +284,19 @@ public class DLSemanticParser extends DLParserBaseListener
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
 				String resolvedModuleId = fileResolver.resolveModuleId(core, requiredModuleId);
 
-				// @todo merge the results with according prefix into this result
-				DLSyntaxParser.parseContent(
-					result,
-					resolvedModuleId,
-					fileResolver.getContent(core, requiredModuleId),
-					getOverridableContext(ctx),
-					core
-				);
+				// Just immediatly parse the required module if it has not been parsed already
+				if (!CACHE.hasCacheNode(resolvedModuleId)) {
+					
+					DLSyntaxParser.parseContent(
+						result,
+						resolvedModuleId,
+						fileResolver.getContent(core, requiredModuleId),
+						core
+					);
+				}
+				
+				cacheNode.addNodeReference(resolvedModuleId, ctx);
+
 			} catch (InvalidModule | IOException ex) {
 				parserResult.addError("File module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
 				log.error(ex);

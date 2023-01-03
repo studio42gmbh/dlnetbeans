@@ -27,13 +27,14 @@ package de.s42.dl.netbeans.completion.items;
 
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.completion.DLCompletionItem;
-import de.s42.dl.netbeans.semantic.DLSemanticCache;
+import de.s42.dl.netbeans.semantic.cache.DLSemanticCache;
+import de.s42.dl.netbeans.semantic.cache.DLSemanticCacheNode;
 import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.text.Document;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
@@ -69,8 +70,16 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	public static void addTypeItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
 		String cacheKey = DLSemanticCache.getCacheKey(document);
+		
+		Optional<DLSemanticCacheNode> optCacheNode = CACHE.getCacheNode(cacheKey);
+		
+		if (optCacheNode.isEmpty()) {
+			return;
+		}
+		
+		DLSemanticCacheNode cacheNode = optCacheNode.orElseThrow();
 
-		for (Type type : CACHE.findTypes(cacheKey, currentWord, caretOffset)) {
+		for (Type type : cacheNode.findTypes(currentWord, caretOffset, true)) {
 
 			CompletionItem item = new TypeDLCompletionItem(
 				type,
@@ -93,7 +102,7 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	@Override
 	protected int getGotoLine()
 	{
-		return type.getOriginalLine() - 1;
+		return type.getStartLine()- 1;
 	}
 
 	@Override

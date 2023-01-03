@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,44 +23,45 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.semantic.model;
+package de.s42.dl.netbeans.semantic.cache;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import de.s42.dl.netbeans.semantic.model.ModuleEntry;
+import de.s42.dl.netbeans.semantic.model.Type;
+import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class EnumType extends Type
+public interface DLSemanticCacheNode
 {
+	public DLSemanticCache getCache();
+	
+	public String getKey();
+	
+	public ModuleEntry getModule();
 
-	private final static Logger log = LogManager.getLogger(EnumType.class.getName());
+	public Set<Type> getTypes(boolean resolveReferences);
 
-	protected final List<String> values = new ArrayList<>();
-
-	public EnumType(String identifier, List<String> values, ParserRuleContext locationContext, String moduleId)
-	{
-		this(identifier, values, locationContext, moduleId, null);
-	}
-
-	public EnumType(String identifier, List<String> values, ParserRuleContext locationContext, String moduleId, EnumType aliasOf)
-	{
-		super(identifier, locationContext, moduleId, aliasOf);
-
-		if (values != null) {
-			this.values.addAll(values);
-		}
-	}
-
-	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	public List<String> getValues()
-	{
-		return Collections.unmodifiableList(values);
-	}
-	//</editor-fold>
+	/**
+	 * Add a new type to this node
+	 * @param type
+	 * @return 
+	 */
+	public boolean addType(Type type);
+	
+	/**
+	 * Adds a loose reference to another node which might not yet have been resolved (used to reflect relationships like require)
+	 * @param key
+	 * @param locationContext
+	 * @return 
+	 */
+	public boolean addNodeReference(String key, ParserRuleContext locationContext);
+	
+	// QUERIES
+	public boolean hasType(String typeName, int caretOffset, boolean resolveReferences);
+	
+	
+	public Set<Type> findTypes(String query, int caretOffset, boolean resolveReferences);
 }

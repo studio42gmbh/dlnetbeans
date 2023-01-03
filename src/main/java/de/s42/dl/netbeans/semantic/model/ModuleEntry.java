@@ -25,86 +25,35 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic.model;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class Type extends Entry
+public class ModuleEntry extends Entry
 {
 
-	private final static Logger log = LogManager.getLogger(Type.class.getName());
+	protected final List<ModuleEntry> required = new ArrayList<>();
 
-	protected final List<Type> contained = new ArrayList<>();
-	protected final List<Type> extended = new ArrayList<>();
-	protected final Type aliasOf;
-
-	public Type(String identifier, ParserRuleContext locationContext, String moduleId)
+	public ModuleEntry(String moduleId)
 	{
-		this(identifier, locationContext, moduleId, null);
+		super(moduleId, null, moduleId);
 	}
 
-	public Type(String identifier, ParserRuleContext locationContext, String moduleId, Type aliasOf)
+	public void addRequired(ModuleEntry module)
 	{
-		super(identifier, locationContext, moduleId);
+		assert module != null;
 
-		this.aliasOf = aliasOf;
-	}
-
-	public void addContained(Type type)
-	{
-		assert type != null;
-
-		contained.add(type);
-	}
-
-	public void addExtended(Type type)
-	{
-		assert type != null;
-
-		extended.add(type);
+		required.add(module);
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
-	public List<Type> getExtended()
+	public List<ModuleEntry> getRequired()
 	{
-		return Collections.unmodifiableList(extended);
-	}
-
-	public List<Type> getContained()
-	{
-		return Collections.unmodifiableList(contained);
-	}
-
-	public Type getAliasOf()
-	{
-		return aliasOf;
-	}
-
-	public String getPath()
-	{
-		int dotIndex = identifier.lastIndexOf('.');
-		if (dotIndex > -1) {
-			return identifier.substring(0, dotIndex);
-		} else {
-			return "";
-		}
-	}
-
-	public String getSimpleName()
-	{
-		int dotIndex = identifier.lastIndexOf('.');
-		if (dotIndex > -1) {
-			return identifier.substring(dotIndex + 1);
-		} else {
-			return identifier;
-		}
+		return Collections.unmodifiableList(required);
 	}
 	//</editor-fold>
 }

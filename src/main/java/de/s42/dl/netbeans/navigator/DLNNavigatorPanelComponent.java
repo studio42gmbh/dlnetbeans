@@ -115,7 +115,7 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 			} catch (DLException | RuntimeException ex) {
 
 				showErrorNode(ex);
-				//log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
+				log.stopTrace("DLNNavigatorPanelComponent.showContentNode");
 			}
 		});
 	}
