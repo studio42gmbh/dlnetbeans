@@ -27,26 +27,15 @@ package de.s42.dl.netbeans.semantic;
 
 import de.s42.dl.netbeans.semantic.cache.DLSemanticCache;
 import de.s42.base.strings.StringHelper;
-import de.s42.dl.DLCore;
-import de.s42.dl.core.DefaultCore;
-import de.s42.dl.core.resolvers.FileCoreResolver;
-import de.s42.dl.core.resolvers.LibraryCoreResolver;
+import de.s42.dl.core.BaseDLCore;
+import de.s42.dl.core.DLCoreResolver;
 import de.s42.dl.exceptions.InvalidModule;
-import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.dl.netbeans.semantic.cache.DLSemanticCacheNode;
-import de.s42.dl.netbeans.semantic.model.Type;
-import de.s42.dl.netbeans.semantic.model.EnumType;
-import de.s42.dl.netbeans.semantic.model.ModuleEntry;
+import de.s42.dl.netbeans.semantic.model.*;
 import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.dl.netbeans.syntax.DLSyntaxParser;
 import de.s42.dl.parser.DLHrfParsing;
-import de.s42.dl.parser.DLParser;
-import de.s42.dl.parser.DLParser.AliasNameContext;
-import de.s42.dl.parser.DLParser.ContainsTypeNameContext;
-import de.s42.dl.parser.DLParser.GenericParameterContext;
-import de.s42.dl.parser.DLParser.ParentTypeNameContext;
-import de.s42.dl.parser.DLParser.TypeHeaderContext;
-import de.s42.dl.parser.DLParser.TypeIdentifierContext;
+import de.s42.dl.parser.DLParser.*;
 import de.s42.dl.parser.DLParserBaseListener;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
@@ -56,6 +45,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
+import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.dl.netbeans.util.FileObjectHelper;
 
 /**
  *
@@ -69,12 +60,11 @@ public class DLSemanticParser extends DLParserBaseListener
 	protected final static DLSemanticCache CACHE = MimeLookup.getLookup(DL_MIME_TYPE).lookup(DLSemanticCache.class);
 
 	protected final DLParserResult parserResult;
-	//protected final String cacheKey;
-	protected final DLCore core;
+	protected final BaseDLCore core;
 	protected final String moduleId;
 	protected final DLSemanticCacheNode cacheNode;
 
-	public DLSemanticParser(DLParserResult parserResult, DLCore core, String moduleId)
+	public DLSemanticParser(DLParserResult parserResult, BaseDLCore core, String moduleId)
 	{
 		assert parserResult != null;
 		assert core != null;
@@ -84,13 +74,118 @@ public class DLSemanticParser extends DLParserBaseListener
 		this.moduleId = moduleId;
 		this.parserResult = parserResult;
 
-		String cacheKey = DLSemanticCache.getCacheKey(moduleId);		
+		String cacheKey = DLSemanticCache.getCacheKey(moduleId);
 		ModuleEntry module = new ModuleEntry(moduleId);
-		
-		// This cache node will be filled while not being in the cache yte -> after scannning the whole document it will be published
+
+		// This cache node will be filled while not being in the cache directly -> after scannning the whole document it will be published
 		cacheNode = CACHE.createCacheNode(cacheKey, module);
 	}
 
+	@Override
+	public void enterData(DataContext ctx)
+	{
+		assert ctx != null;
+
+		// Load a nb-project.dl if given
+		FileObjectHelper.resolveAutoRequireDl(Path.of(moduleId))
+			.ifPresent((path) -> {
+				requireModule(path.toAbsolutePath().normalize().toString(), ctx);
+			});
+	}
+
+	@Override
+	public void exitData(DataContext ctx)
+	{
+		// After successful parsing -> Update cache node
+		CACHE.setCacheNode(cacheNode);
+	}
+
+	@Override
+	public void exitEnumDefinition(EnumDefinitionContext ctx)
+	{
+		assert ctx != null;
+
+		if (ctx.enumName() == null) {
+			return;
+		}
+
+		List<String> values = new ArrayList<>();
+		if (ctx.enumBody() != null && ctx.enumBody().enumValueDefinition() != null) {
+			for (EnumValueDefinitionContext evCtx : ctx.enumBody().enumValueDefinition()) {
+				values.add(evCtx.getText());
+			}
+		}
+
+		EnumType type = addEnumDefinition(ctx.enumName(), values, true, null);
+
+		// Add alias typenames -> dont warn if they start with lowercase
+		if (ctx.aliases() != null) {
+			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
+				addEnumDefinition(aliasCtx, values, false, type);
+			}
+		}
+	}
+
+	@Override
+	public void exitTypeHeader(TypeHeaderContext ctx)
+	{
+		assert ctx != null;
+
+		if (ctx.typeDefinitionName() == null) {
+			return;
+		}
+
+		Type type = addTypeDefinition(ctx.typeDefinitionName(), true, null);
+
+		// Ensure all parent types are defined and valid
+		if (ctx.parentTypeName()!= null) {
+			for (ParentTypeNameContext parentCtx : ctx.parentTypeName()) {
+				
+				// Check if a parent is
+				if (parentCtx.getText().equals(ctx.typeDefinitionName().getText())) {
+					parserResult.addError("Parent of type can not be the type itself", parentCtx);
+				}
+				
+				validateTypeNameContext(parentCtx);
+			}
+		}
+		
+		// Ensure all contains types are defined
+		if (ctx.containsTypeName() != null) {
+			for (ContainsTypeNameContext containsCtx : ctx.containsTypeName()) {
+				validateTypeNameContext(containsCtx);
+			}
+		}
+		
+		// Add alias typenames -> dont warn if they start with lowercase
+		if (ctx.aliases() != null) {
+			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
+				addTypeDefinition(aliasCtx, false, type);
+			}
+		}		
+	}
+
+	@Override
+	public void exitGenericParameter(GenericParameterContext ctx)
+	{
+		validateTypeNameContext(ctx);
+	}
+
+	@Override
+	public void exitTypeIdentifier(TypeIdentifierContext ctx)
+	{
+		validateTypeNameContext(ctx);
+	}
+
+	@Override
+	public void exitRequire(RequireContext ctx)
+	{
+		assert ctx != null;
+
+		// Retrieve the module id and require
+		requireModule(DLHrfParsing.getRequireModuleId(ctx.requireModuleId()), ctx);
+	}
+	
 	protected void validateTypeNameContext(ParserRuleContext ctx)
 	{
 		assert ctx != null;
@@ -99,7 +194,7 @@ public class DLSemanticParser extends DLParserBaseListener
 
 		// Error: Type must be defined in this context
 		if (!cacheNode.hasType(typeName, ctx.getStart().getStartIndex(), true)) {
-			parserResult.addError("Type " + typeName + " is not defined", ctx);
+			parserResult.addWarning("Type " + typeName + " is not defined", ctx);
 		}
 	}
 
@@ -138,7 +233,7 @@ public class DLSemanticParser extends DLParserBaseListener
 		String enumName = context.getText();
 
 		// Error: Dont allow double definitions
-		if (cacheNode.hasType(enumName,context.getStart().getStartIndex(), true)) {
+		if (cacheNode.hasType(enumName, context.getStart().getStartIndex(), true)) {
 			parserResult.addError("Enum " + enumName + " is already defined", context);
 		}
 
@@ -160,151 +255,61 @@ public class DLSemanticParser extends DLParserBaseListener
 		return enumType;
 	}
 
-	@Override
-	public void exitData(DLParser.DataContext ctx)
+	protected boolean loadModule(DLCoreResolver resolver, String moduleId, ParserRuleContext locationContext)
 	{
-		// After successful parsing > Update cache node
-		CACHE.setCacheNode(cacheNode);		
-	}
-	
-	@Override
-	public void exitEnumDefinition(DLParser.EnumDefinitionContext ctx)
-	{
-		assert ctx != null;
+		assert resolver != null;
+		assert moduleId != null;
+		assert locationContext != null;
 
-		if (ctx.enumName() == null) {
-			return;
+		if (!resolver.canParse(core, moduleId, null)) {
+			return false;
 		}
 
-		List<String> values = new ArrayList<>();
-		if (ctx.enumBody() != null && ctx.enumBody().enumValueDefinition() != null) {
-			for (DLParser.EnumValueDefinitionContext evCtx : ctx.enumBody().enumValueDefinition()) {
-				values.add(evCtx.getText());
-			}
-		}
+		try {
 
-		EnumType type = addEnumDefinition(ctx.enumName(), values, true, null);
+			String resolvedModuleId = resolver.resolveModuleId(core, moduleId);
 
-		// Add alias typenames -> dont warn if they start with lowercase
-		if (ctx.aliases() != null) {
-			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
-				addEnumDefinition(aliasCtx, values, false, type);
-			}
-		}
-	}
+			// Just immediatly parse the required module if it has not been parsed already
+			if (!CACHE.hasCacheNode(resolvedModuleId)) {
 
-	@Override
-	public void exitTypeHeader(TypeHeaderContext ctx)
-	{
-		assert ctx != null;
-
-		if (ctx.typeDefinitionName() == null) {
-			return;
-		}
-
-		Type type = addTypeDefinition(ctx.typeDefinitionName(), true, null);
-
-		// Add alias typenames -> dont warn if they start with lowercase
-		if (ctx.aliases() != null) {
-			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
-				addTypeDefinition(aliasCtx, false, type);
-			}
-		}
-	}
-
-	@Override
-	public void exitGenericParameter(GenericParameterContext ctx)
-	{
-		validateTypeNameContext(ctx);
-	}
-
-	@Override
-	public void exitContainsTypeName(ContainsTypeNameContext ctx)
-	{
-		validateTypeNameContext(ctx);
-	}
-
-	@Override
-	public void exitParentTypeName(ParentTypeNameContext ctx)
-	{
-		validateTypeNameContext(ctx);
-	}
-
-	@Override
-	public void exitTypeIdentifier(TypeIdentifierContext ctx)
-	{
-		validateTypeNameContext(ctx);
-	}
-
-	@Override
-	public void exitRequire(DLParser.RequireContext ctx)
-	{
-		assert ctx != null;
-
-		// Retrieve the module id
-		String requiredModuleId = DLHrfParsing.getRequireModuleId(ctx.requireModuleId());
-
-		// This core is created to have an anchor for the resolvers
-		LibraryCoreResolver libResolver = (LibraryCoreResolver) DefaultCore.LIBRARY_RESOLVER;
-		FileCoreResolver fileResolver = (FileCoreResolver) DefaultCore.FILE_RESOLVER;
-
-		Path oldLocalPath = fileResolver.getLocalPathInCore(core);
-		fileResolver.setLocalPathInCore(core, Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
-
-		// @todo Is there a more generic way to make sure the according resolvers are used?
-		// Try to resolve module with the library resolver
-		if (libResolver.canParse(core, requiredModuleId, null)) {
-
-			try {
+				String content = resolver.getContent(core, resolvedModuleId, null);
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
-				String resolvedModuleId = libResolver.resolveModuleId(core, requiredModuleId);
-				
-				// Just immediatly parse the required module if it has not been parsed already
-				if (!CACHE.hasCacheNode(resolvedModuleId)) {
-				
-					// @todo merge the results with according prefix into this result
-					DLSyntaxParser.parseContent(
-						result,
-						resolvedModuleId,
-						libResolver.getContent(core, requiredModuleId),
-						core
-					);
-				}
 
-				cacheNode.addNodeReference(resolvedModuleId, ctx);			
-				
-			} catch (InvalidModule | IOException ex) {
-				parserResult.addError("Library module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
-				log.error(ex);
-			}
-		} else if (fileResolver.canParse(core, requiredModuleId, null)) {
-
-			// Prepare core to allow relative path lookups
-			try {
-				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
-				String resolvedModuleId = fileResolver.resolveModuleId(core, requiredModuleId);
-
-				// Just immediatly parse the required module if it has not been parsed already
-				if (!CACHE.hasCacheNode(resolvedModuleId)) {
-					
-					DLSyntaxParser.parseContent(
-						result,
-						resolvedModuleId,
-						fileResolver.getContent(core, requiredModuleId),
-						core
-					);
-				}
-				
-				cacheNode.addNodeReference(resolvedModuleId, ctx);
-
-			} catch (InvalidModule | IOException ex) {
-				parserResult.addError("File module " + requiredModuleId + " could not get parsed - " + ex.getMessage(), ctx);
-				log.error(ex);
+				DLSyntaxParser.parseContent(
+					result,
+					resolvedModuleId,
+					content,
+					core
+				);
 			}
 
-			fileResolver.setLocalPathInCore(core, oldLocalPath);
-		} else {
-			parserResult.addError("Resolver module " + requiredModuleId + " could not get resolved", ctx);
+			// Make sure inclusion from data context are put right at the start of this content
+			if (locationContext instanceof DataContext) {
+				cacheNode.addNodeReference(resolvedModuleId);
+			} else {
+				cacheNode.addNodeReference(resolvedModuleId, locationContext);
+			}
+
+			// @todo if the referenced cache node contains errors it might be nice to add them here to signal the user the ref has errors			
+		} catch (InvalidModule | IOException ex) {
+			parserResult.addError("Module " + moduleId + " could not get parsed - " + ex.getMessage(), locationContext);
+			log.error(ex);
 		}
+
+		return true;
 	}
+
+	protected void requireModule(String requiredModuleId, ParserRuleContext locationContext)
+	{
+		assert requiredModuleId != null;
+		assert locationContext != null;
+
+		for (DLCoreResolver resolver : core.getResolvers()) {
+			if (loadModule(resolver, requiredModuleId, locationContext)) {
+				return;
+			}
+		}
+
+		parserResult.addError("Module " + requiredModuleId + " could not get resolved", locationContext);
+	}	
 }

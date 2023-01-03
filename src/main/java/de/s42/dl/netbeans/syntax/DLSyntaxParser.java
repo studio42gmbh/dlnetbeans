@@ -25,8 +25,9 @@
 //</editor-fold>
 package de.s42.dl.netbeans.syntax;
 
-import de.s42.dl.DLCore;
 import de.s42.dl.core.BaseDLCore;
+import de.s42.dl.core.DefaultCore;
+import de.s42.dl.core.resolvers.FileCoreResolver;
 import de.s42.dl.exceptions.ReservedKeyword;
 import de.s42.dl.netbeans.semantic.DLSemanticParser;
 import de.s42.dl.netbeans.syntax.hints.DLParsingError;
@@ -62,7 +63,7 @@ public class DLSyntaxParser extends Parser
 
 	private DLParserResult parserResult;
 
-	public static void parseContent(DLParserResult result, String moduleId, String content, DLCore core)
+	public static void parseContent(DLParserResult result, String moduleId, String content, BaseDLCore core)
 	{
 		assert result != null;
 		assert content != null;
@@ -133,7 +134,9 @@ public class DLSyntaxParser extends Parser
 
 		try {
 
-			DLCore core = new BaseDLCore(true);
+			BaseDLCore core = new BaseDLCore(true);
+			DefaultCore.loadResolvers(core);
+			FileCoreResolver.setLocalPathInCore(core, Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
 			String dlContent = String.valueOf(snapshot.getText());
 			String moduleId = Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
 

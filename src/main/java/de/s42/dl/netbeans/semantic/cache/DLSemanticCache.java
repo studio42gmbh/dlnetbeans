@@ -125,7 +125,7 @@ public class DLSemanticCache
 	{
 		assert node != null;
 
-		log.info("setCacheNode", node);
+		log.debug("setCacheNode", node);
 
 		return nodesByKey.put(node.getKey(), node);
 	}

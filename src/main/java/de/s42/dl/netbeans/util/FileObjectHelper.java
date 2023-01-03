@@ -27,7 +27,10 @@ package de.s42.dl.netbeans.util;
 
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Optional;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
@@ -49,12 +52,72 @@ public final class FileObjectHelper
 
 	public final static int SET_LINE_RETRIES = 10;
 	public final static int SET_LINE_RETRY_WAIT_MS = 200;
+	public final static int MAX_RESOLVE_DEPTH = 100;
+	public final static String AUTO_REQUIRE_DL_NAME = "auto-require.dl";
 
 	private final static Logger log = LogManager.getLogger(FileObjectHelper.class.getName());
 
 	private FileObjectHelper()
 	{
 		// never instantiated
+	}
+
+	/**
+	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
+	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
+	 *
+	 * @param fileObject
+	 *
+	 * @return
+	 */
+	public static Optional<Path> resolveAutoRequireDl(FileObject fileObject)
+	{
+		assert fileObject != null;
+
+		return resolveAutoRequireDl(Path.of(fileObject.getPath()));
+	}
+
+	/**
+	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
+	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
+	 *
+	 * @param path
+	 *
+	 * @return
+	 */
+	public static Optional<Path> resolveAutoRequireDl(Path path)
+	{
+		assert path != null;
+		
+		try {
+
+			Path currentPath = path.toAbsolutePath().normalize();
+
+			// Get the dir of a given file
+			if (Files.isRegularFile(currentPath)) {
+
+				// If the file itself is a auto require file -> return empty to prevent nasty loops in client code
+				if (currentPath.endsWith(AUTO_REQUIRE_DL_NAME)) {
+					return Optional.empty();
+				}
+
+				currentPath = currentPath.getParent();
+			}
+
+			// Traverse up the directories and search for first matching auto require
+			for (int i = 0; i < MAX_RESOLVE_DEPTH && currentPath != null && Files.isDirectory(currentPath); ++i) {
+				Path autoRequireDL = currentPath.resolve(AUTO_REQUIRE_DL_NAME);
+				if (Files.isRegularFile(autoRequireDL)) {
+					return Optional.of(autoRequireDL);
+				}
+				currentPath = currentPath.getParent();
+			}
+		}
+		catch (InvalidPathException ex) {
+			log.error(ex.getMessage());
+		}
+		
+		return Optional.empty();
 	}
 
 	/**
@@ -68,7 +131,10 @@ public final class FileObjectHelper
 	{
 		try {
 			document.readLock();
-			String text = document.getText(document.getStartPosition().getOffset(), document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1);
+			String text = document.getText(
+				document.getStartPosition().getOffset(),
+				document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1
+			);
 			document.readUnlock();
 
 			return text;
@@ -91,7 +157,12 @@ public final class FileObjectHelper
 
 		try {
 			document.extWriteLock();
-			document.replace(document.getStartPosition().getOffset(), document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1, text, null);
+			document.replace(
+				document.getStartPosition().getOffset(),
+				document.getEndPosition().getOffset() - document.getStartPosition().getOffset() - 1,
+				text,
+				null
+			);
 			document.extWriteUnlock();
 		} catch (BadLocationException ex) {
 			// Should not happen as the access happens in locked state
@@ -124,7 +195,7 @@ public final class FileObjectHelper
 	}
 
 	/**
-	 * Ste the caret into a certain line in a document
+	 * Set the caret into a certain line in a document
 	 *
 	 * @param cookie
 	 * @param offset

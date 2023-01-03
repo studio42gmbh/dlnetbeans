@@ -128,12 +128,14 @@ public class DocumentationHtmlFactory
 		// Location
 		builder
 			.append("<p>Defined in module <b>")
-			.append(type.getModuleId())
+			.append(type.getShortModuleId())
 			.append("</b> (")
 			.append(type.getStartLine())
 			.append(":")
 			.append(type.getStartPosition())
-			.append(")</p>");
+			.append(")<br><i>")
+			.append(type.getModuleId())
+			.append("</i></p>");
 
 		// Append alias info
 		if (type.getAliasOf() != null) {

@@ -52,12 +52,19 @@ public interface DLSemanticCacheNode
 	public boolean addType(Type type);
 	
 	/**
-	 * Adds a loose reference to another node which might not yet have been resolved (used to reflect relationships like require)
+	 * Adds a loose reference to another node which might not yet have been resolved at a given location from locationContext (used to reflect relationships like require)
 	 * @param key
 	 * @param locationContext
 	 * @return 
 	 */
 	public boolean addNodeReference(String key, ParserRuleContext locationContext);
+
+	/**
+	 * Adds a loose reference to another node which might not yet have been resolved at start of document (pos: 0) (used to reflect relationships like require)
+	 * @param key
+	 * @return 
+	 */
+	public boolean addNodeReference(String key);
 	
 	// QUERIES
 	public boolean hasType(String typeName, int caretOffset, boolean resolveReferences);

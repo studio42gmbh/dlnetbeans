@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic.model;
 
+import de.s42.dl.instances.DefaultDLModule;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.Objects;
@@ -57,12 +58,12 @@ public abstract class Entry
 		this.identifier = identifier;
 
 		if (locationContext != null) {
-			startLine = locationContext.start.getLine();
-			startPosition = locationContext.start.getCharPositionInLine() + 1;
-			startOffset = locationContext.start.getStartIndex();
-			endLine = locationContext.start.getLine();
-			endOffset = locationContext.start.getStopIndex();
-			endPosition = locationContext.start.getCharPositionInLine() + 1 + endOffset - startOffset;
+			startLine = locationContext.getStart().getLine();
+			startPosition = locationContext.getStart().getCharPositionInLine() + 1;
+			startOffset = locationContext.getStart().getStartIndex();
+			endLine = locationContext.getStop().getLine();
+			endOffset = locationContext.getStop().getStopIndex() + 1;
+			endPosition = locationContext.getStop().getCharPositionInLine() + 1 + endOffset - startOffset;
 		} else {
 			startLine = 0;
 			startPosition = 0;
@@ -152,6 +153,11 @@ public abstract class Entry
 	public void setModuleId(String moduleId)
 	{
 		this.moduleId = moduleId;
+	}
+
+	public String getShortModuleId()
+	{
+		return DefaultDLModule.createShortName(moduleId);
 	}
 	//</editor-fold>
 

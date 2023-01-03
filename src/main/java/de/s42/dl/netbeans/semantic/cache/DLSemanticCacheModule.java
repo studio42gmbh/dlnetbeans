@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic.cache;
 
+import de.s42.dl.netbeans.semantic.model.Entry;
 import de.s42.dl.netbeans.semantic.model.ModuleEntry;
 import de.s42.dl.netbeans.semantic.model.Type;
 import de.s42.log.LogManager;
@@ -109,6 +110,17 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 
 		return types.putIfAbsent(type.getIdentifier(), type) == null;
 	}
+	
+	@Override
+	public boolean addNodeReference(String key)
+	{
+		assert key != null;
+
+		NodeReference reference = new NodeReference();
+		reference.key = key;
+		
+		return references.add(reference);
+	}
 
 	@Override
 	public boolean addNodeReference(String key, ParserRuleContext locationContext)
@@ -118,22 +130,23 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 
 		NodeReference reference = new NodeReference();
 		reference.key = key;
-		reference.startLine = locationContext.start.getLine();
-		reference.startPosition = locationContext.start.getCharPositionInLine() + 1;
-		reference.startOffset = locationContext.start.getStartIndex();
-		reference.endLine = locationContext.start.getLine();
-		reference.endOffset = locationContext.start.getStopIndex();
-		reference.endPosition = locationContext.start.getCharPositionInLine() + 1 + reference.endOffset - reference.startOffset;
-
+		
+		reference.startLine = locationContext.getStart().getLine();
+		reference.startPosition = locationContext.getStart().getCharPositionInLine() + 1;
+		reference.startOffset = locationContext.getStart().getStartIndex();
+		reference.endLine = locationContext.getStop().getLine();
+		reference.endOffset = locationContext.getStop().getStopIndex() + 1;
+		reference.endPosition = locationContext.getStop().getCharPositionInLine() + 1 + reference.endOffset - reference.startOffset;
+		
 		return references.add(reference);
 	}
-
+	
 	@Override
 	public boolean hasType(String typeName, int caretOffset, boolean resolveReferences)
 	{
 		Type type = types.get(typeName);
 
-		if (type != null && type.getEndOffset() <= caretOffset) {
+		if (type != null && isEntryVisible(type, caretOffset)) {
 			return true;
 		}
 
@@ -141,6 +154,7 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 			return false;
 		}
 
+		// Resolve all references which are already in scope at caret position
 		for (NodeReference reference : references) {
 
 			if (reference.endOffset > caretOffset) {
@@ -192,13 +206,14 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 			return // Empty filter or match start case independent
 				(query.isBlank() || type.getIdentifier().toLowerCase().startsWith(query.toLowerCase()))
 				// End of type location before caret offset
-				&& type.getEndOffset() < caretOffset;
+				&& isEntryVisible(type, caretOffset);
 		}).toList());
 
 		if (!resolveReferences) {
 			return result;
 		}
 
+		// Resolve all references which are already in scope at caret position
 		for (NodeReference reference : references) {
 
 			if (reference.endOffset > caretOffset) {
@@ -216,6 +231,13 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 		}
 
 		return result;
+	}
+	
+	protected boolean isEntryVisible(Entry entry, int caretOffset)
+	{
+		assert entry != null;
+		
+		return entry.getEndOffset() <= caretOffset;
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">

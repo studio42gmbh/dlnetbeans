@@ -1,0 +1,13 @@
+/**
+ * This DL will be loaded before any DL file in this project in the IDE 
+ * to allow for plain DLs supporting project specific types
+ */
+
+require "dl:standard/base.dl";
+
+type DLNBProject extends Object contains DLNBProject
+{
+	String display @required;
+	String description : "";
+	UUID id;
+}
