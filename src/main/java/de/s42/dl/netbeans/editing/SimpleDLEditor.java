@@ -107,9 +107,7 @@ public class SimpleDLEditor implements DLEditor
 		log.debug("doStuff");
 
 		// Read whole document
-		document.readLock();
-		String text = document.getText(document.getStartPosition().getOffset(), document.getEndPosition().getOffset());
-		document.readUnlock();
+		String text = FileObjectHelper.getText(document);
 
 		log.debug("OLD\n", text);
 

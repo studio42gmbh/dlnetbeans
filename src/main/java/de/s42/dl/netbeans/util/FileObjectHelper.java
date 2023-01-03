@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.netbeans.util;
 
+import de.s42.dl.parser.DLLexer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.nio.file.Files;
@@ -34,6 +35,9 @@ import java.util.Optional;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.TokenStream;
 import org.netbeans.editor.BaseDocument;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileObject;
@@ -63,6 +67,23 @@ public final class FileObjectHelper
 	}
 
 	/**
+	 * Constructs a new TokenStream with an underlying DLLexer from a given text
+	 *
+	 * @param content
+	 *
+	 * @return
+	 */
+	public static TokenStream getDLTokenStream(String content)
+	{
+		assert content != null;
+
+		DLLexer lexer = new DLLexer(CharStreams.fromString(content));
+		lexer.removeErrorListeners();
+
+		return new BufferedTokenStream(lexer);
+	}
+
+	/**
 	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
 	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
 	 *
@@ -88,7 +109,7 @@ public final class FileObjectHelper
 	public static Optional<Path> resolveAutoRequireDl(Path path)
 	{
 		assert path != null;
-		
+
 		try {
 
 			Path currentPath = path.toAbsolutePath().normalize();
@@ -112,11 +133,10 @@ public final class FileObjectHelper
 				}
 				currentPath = currentPath.getParent();
 			}
-		}
-		catch (InvalidPathException ex) {
+		} catch (InvalidPathException ex) {
 			log.error(ex.getMessage());
 		}
-		
+
 		return Optional.empty();
 	}
 

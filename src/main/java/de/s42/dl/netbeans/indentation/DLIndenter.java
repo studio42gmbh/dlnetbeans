@@ -30,8 +30,6 @@ import de.s42.dl.parser.DLLexer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import javax.swing.text.BadLocationException;
-import org.antlr.v4.runtime.BufferedTokenStream;
-import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.netbeans.editor.BaseDocument;
@@ -55,7 +53,7 @@ public class DLIndenter
 	public DLIndenter(Context context)
 	{
 		assert context != null;
-		
+
 		this.context = context;
 	}
 
@@ -77,11 +75,12 @@ public class DLIndenter
 		assert endIndex >= 0;
 		assert endIndex >= startIndex;
 
-		//log.debug("reindent", startIndex, endIndex);
+		log.debug("reindentRegion", startIndex, endIndex);
+
 		BaseDocument document = getDocument();
 		String text = FileObjectHelper.getText(document);
 		int indentLevel = IndentUtils.indentLevelSize(document);
-		TokenStream tokens = getDLTokenStream(text);
+		TokenStream tokens = FileObjectHelper.getDLTokenStream(text);
 
 		// Iterate tokens from lexer
 		boolean justNewline = true;
@@ -136,24 +135,12 @@ public class DLIndenter
 	}
 
 	/**
-	 * Constructs a new TokenStream with an underlying DLLexer from a given text
-	 * @param content
-	 * @return 
-	 */
-	protected TokenStream getDLTokenStream(String content)
-	{
-		assert content != null;
-
-		DLLexer lexer = new DLLexer(CharStreams.fromString(content));
-		lexer.removeErrorListeners();
-
-		return new BufferedTokenStream(lexer);
-	}
-
-	/**
-	 * Return the number of direct closing scopes from the beginning of a line. anything else but whitespaces ends the count
+	 * Return the number of direct closing scopes from the beginning of a line. anything else but whitespaces ends the
+	 * count
+	 *
 	 * @param tokens
-	 * @return 
+	 *
+	 * @return
 	 */
 	protected int countDirectClosingScopesInThisLine(TokenStream tokens)
 	{
