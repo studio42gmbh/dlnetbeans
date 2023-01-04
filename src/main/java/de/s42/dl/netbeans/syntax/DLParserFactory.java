@@ -1,4 +1,4 @@
-	// <editor-fold desc="The MIT License" defaultstate="collapsed">
+// <editor-fold desc="The MIT License" defaultstate="collapsed">
 /*
  * The MIT License
  * 
@@ -36,10 +36,7 @@ import org.netbeans.modules.parsing.spi.ParserFactory;
  *
  * @author Benjamin Schiller
  */
-@MimeRegistration(
-	mimeType = DL_MIME_TYPE, 
-	service = ParserFactory.class
-)
+@MimeRegistration(mimeType = DL_MIME_TYPE, service = ParserFactory.class)
 public class DLParserFactory extends ParserFactory
 {
 

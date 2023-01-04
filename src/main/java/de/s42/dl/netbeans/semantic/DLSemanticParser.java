@@ -138,31 +138,31 @@ public class DLSemanticParser extends DLParserBaseListener
 		Type type = addTypeDefinition(ctx.typeDefinitionName(), true, null);
 
 		// Ensure all parent types are defined and valid
-		if (ctx.parentTypeName()!= null) {
+		if (ctx.parentTypeName() != null) {
 			for (ParentTypeNameContext parentCtx : ctx.parentTypeName()) {
-				
+
 				// Check if a parent is
 				if (parentCtx.getText().equals(ctx.typeDefinitionName().getText())) {
 					parserResult.addError("Parent of type can not be the type itself", parentCtx);
 				}
-				
+
 				validateTypeNameContext(parentCtx);
 			}
 		}
-		
+
 		// Ensure all contains types are defined
 		if (ctx.containsTypeName() != null) {
 			for (ContainsTypeNameContext containsCtx : ctx.containsTypeName()) {
 				validateTypeNameContext(containsCtx);
 			}
 		}
-		
+
 		// Add alias typenames -> dont warn if they start with lowercase
 		if (ctx.aliases() != null) {
 			for (AliasNameContext aliasCtx : ctx.aliases().aliasName()) {
 				addTypeDefinition(aliasCtx, false, type);
 			}
-		}		
+		}
 	}
 
 	@Override
@@ -185,7 +185,7 @@ public class DLSemanticParser extends DLParserBaseListener
 		// Retrieve the module id and require
 		requireModule(DLHrfParsing.getRequireModuleId(ctx.requireModuleId()), ctx);
 	}
-	
+
 	protected void validateTypeNameContext(ParserRuleContext ctx)
 	{
 		assert ctx != null;
@@ -311,5 +311,5 @@ public class DLSemanticParser extends DLParserBaseListener
 		}
 
 		parserResult.addError("Module " + requiredModuleId + " could not get resolved", locationContext);
-	}	
+	}
 }

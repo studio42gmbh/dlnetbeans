@@ -47,10 +47,7 @@ import org.openide.util.NbBundle;
  *
  * @author Benjamin Schiller
  */
-@NavigatorPanel.Registration(
-	mimeType = DL_MIME_TYPE, 
-	displayName = "#Navigator_DisplayName"
-)
+@NavigatorPanel.Registration(mimeType = DL_MIME_TYPE, displayName = "#Navigator_DisplayName")
 public class DLNavigatorPanel implements NavigatorPanel
 {
 
@@ -138,7 +135,7 @@ public class DLNavigatorPanel implements NavigatorPanel
 			oldDataObject.getPrimaryFile().removeFileChangeListener(getFileChangeListener());
 		}
 
-		getComponent().setNewContent((DLDataObject)dataObject);
+		getComponent().setNewContent((DLDataObject) dataObject);
 
 		// Add file change listener to new data object
 		if (dataObject != null) {
@@ -187,16 +184,15 @@ public class DLNavigatorPanel implements NavigatorPanel
 		public void fileChanged(final FileEvent event)
 		{
 			assert event != null;
-			
+
 			//log.debug("fileChanged", event.getFile().getName());
-			
 			if (event.getTime() > lastSaveTime) {
 				lastSaveTime = System.currentTimeMillis();
 
 				// Refresh image viewer
 				SwingUtilities.invokeLater(() -> {
 					try {
-						getComponent().setNewContent((DLDataObject)DataObject.find(event.getFile()));
+						getComponent().setNewContent((DLDataObject) DataObject.find(event.getFile()));
 					} catch (DataObjectNotFoundException ex) {
 						throw new RuntimeException(ex);
 					}

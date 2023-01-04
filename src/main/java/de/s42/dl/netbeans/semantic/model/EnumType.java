@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic.model;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,9 +37,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 public class EnumType extends Type
 {
 
-	private final static Logger log = LogManager.getLogger(EnumType.class.getName());
-
-	protected final List<String> values = new ArrayList<>();
+	protected final List<String> values;
 
 	public EnumType(String identifier, List<String> values, ParserRuleContext locationContext, String moduleId)
 	{
@@ -53,14 +49,16 @@ public class EnumType extends Type
 		super(identifier, locationContext, moduleId, aliasOf);
 
 		if (values != null) {
-			this.values.addAll(values);
+			this.values = Collections.unmodifiableList(new ArrayList(values));
+		} else {
+			this.values = Collections.EMPTY_LIST;
 		}
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	public List<String> getValues()
 	{
-		return Collections.unmodifiableList(values);
+		return values;
 	}
 	//</editor-fold>
 }

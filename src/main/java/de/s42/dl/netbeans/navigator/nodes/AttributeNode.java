@@ -27,8 +27,6 @@ package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLAttribute;
 import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -42,18 +40,16 @@ import org.openide.util.NbBundle;
 public class AttributeNode extends AbstractNode
 {
 
-	private final static Logger log = LogManager.getLogger(AttributeNode.class.getName());
-
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/attribute.png"); // NOI18N
-	
+
 	protected final DLAttribute attribute;
 
 	public AttributeNode(DLAttribute attribute)
 	{
 		super(Children.LEAF);
-		
+
 		assert attribute != null;
-		
+
 		this.attribute = attribute;
 	}
 

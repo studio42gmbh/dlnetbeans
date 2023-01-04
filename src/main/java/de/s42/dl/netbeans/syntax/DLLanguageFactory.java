@@ -40,6 +40,7 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
  */
 public class DLLanguageFactory
 {
+
 	@MimeRegistration(mimeType = DL_MIME_TYPE, service = Language.class)
 	public static final Language<?> getLanguage()
 	{

@@ -27,8 +27,6 @@ package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLInstance;
 import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -41,8 +39,6 @@ import org.openide.util.NbBundle;
  */
 public class InstanceNode extends AbstractNode
 {
-
-	private final static Logger log = LogManager.getLogger(InstanceNode.class.getName());
 
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/instance.png"); // NOI18N
 

@@ -28,8 +28,6 @@ package de.s42.dl.netbeans.navigator.nodes;
 import de.s42.dl.DLAttribute;
 import de.s42.dl.DLEnum;
 import de.s42.dl.DLType;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.List;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
@@ -40,8 +38,6 @@ import org.openide.nodes.Node;
  */
 public class TypeNodeChildFactory extends ChildFactory<Object>
 {
-
-	private final static Logger log = LogManager.getLogger(TypeNodeChildFactory.class.getName());
 
 	protected final DLType type;
 
@@ -56,9 +52,8 @@ public class TypeNodeChildFactory extends ChildFactory<Object>
 	protected boolean createKeys(List<Object> list)
 	{
 		if (type instanceof DLEnum) {
-			list.addAll(((DLEnum)type).getValues());
-		}
-		else {
+			list.addAll(((DLEnum) type).getValues());
+		} else {
 			list.addAll(type.getParents());
 			list.addAll(type.getOwnAttributes());
 		}
@@ -69,18 +64,18 @@ public class TypeNodeChildFactory extends ChildFactory<Object>
 	@Override
 	protected Node createNodeForKey(Object entry)
 	{
-		if (entry instanceof DLAttribute) {		
-			return new AttributeNode((DLAttribute)entry);
-		}
-		
-		if (entry instanceof DLType) {		
-			return new TypeNode((DLType)entry);
+		if (entry instanceof DLAttribute) {
+			return new AttributeNode((DLAttribute) entry);
 		}
 
-		if (type instanceof DLEnum && entry != null) {		
+		if (entry instanceof DLType) {
+			return new TypeNode((DLType) entry);
+		}
+
+		if (type instanceof DLEnum && entry != null) {
 			return new ValueNode(entry.toString(), "");
 		}
-		
-		return null;		
+
+		return null;
 	}
 }

@@ -105,7 +105,7 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 		@Override
 		public Collection<? extends SchedulerTask> create(Snapshot snapshot)
 		{
-			//log.warn("create", snapshot.getSource().getFileObject().getName());
+			//log.debug("create", snapshot.getSource().getFileObject().getName());
 			return Collections.singleton(new DLHintsTask());
 		}
 

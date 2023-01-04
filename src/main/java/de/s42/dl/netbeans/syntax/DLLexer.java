@@ -70,7 +70,7 @@ public class DLLexer implements Lexer<DLTokenId>
 	public Token<DLTokenId> nextToken()
 	{
 		org.antlr.v4.runtime.Token nextToken = lexer.nextToken();
-		
+
 		int tokenType = nextToken.getType();
 
 		switch (tokenType) {

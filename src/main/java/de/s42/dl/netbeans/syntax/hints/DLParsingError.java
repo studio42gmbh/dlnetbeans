@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.syntax.hints;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import org.netbeans.modules.csl.api.Severity;
 import org.openide.filesystems.FileObject;
 
@@ -36,8 +34,6 @@ import org.openide.filesystems.FileObject;
  */
 public class DLParsingError extends AbstractDLParsingHint
 {
-
-	private final static Logger log = LogManager.getLogger(DLParsingError.class.getName());
 
 	public DLParsingError(FileObject fileObject, String display, String description, int startPosition, int endPosition)
 	{

@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.semantic.model;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +36,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public class Type extends Entry
 {
-
-	private final static Logger log = LogManager.getLogger(Type.class.getName());
 
 	protected final List<Type> contained = new ArrayList<>();
 	protected final List<Type> extended = new ArrayList<>();

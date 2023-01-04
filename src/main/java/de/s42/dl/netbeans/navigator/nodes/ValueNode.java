@@ -26,8 +26,6 @@
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import java.util.Arrays;
 import org.openide.nodes.AbstractNode;
@@ -41,8 +39,6 @@ import org.openide.util.NbBundle;
  */
 public class ValueNode extends AbstractNode
 {
-
-	private final static Logger log = LogManager.getLogger(ValueNode.class.getName());
 
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/value.png"); // NOI18N
 
@@ -84,7 +80,7 @@ public class ValueNode extends AbstractNode
 		else {
 			valueDisplay = (value != null) ? value.toString() : "<null>";
 		}
-		
+
 		if (valueDisplay.isBlank()) {
 			return NbBundle.getMessage(DLNavigatorPanel.class, "LBL_ValueNodeBlankValue", name); // NOI18N
 		}

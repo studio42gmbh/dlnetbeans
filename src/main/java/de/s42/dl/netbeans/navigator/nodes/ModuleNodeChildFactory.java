@@ -28,8 +28,6 @@ package de.s42.dl.netbeans.navigator.nodes;
 import de.s42.dl.DLInstance;
 import de.s42.dl.DLModule;
 import de.s42.dl.DLType;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.List;
 import java.util.Map.Entry;
 import org.openide.nodes.ChildFactory;
@@ -41,8 +39,6 @@ import org.openide.nodes.Node;
  */
 public class ModuleNodeChildFactory extends ChildFactory<Object>
 {
-
-	private final static Logger log = LogManager.getLogger(ModuleNodeChildFactory.class.getName());
 
 	protected final DLModule module;
 
@@ -74,7 +70,7 @@ public class ModuleNodeChildFactory extends ChildFactory<Object>
 		if (entity instanceof DLType) {
 			return new TypeNode((DLType) entity);
 		}
-		
+
 		if (entity instanceof DLModule) {
 			return new ModuleNode((DLModule) entity);
 		}

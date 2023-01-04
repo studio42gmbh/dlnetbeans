@@ -30,8 +30,6 @@ import de.s42.dl.netbeans.completion.DLCompletionItem;
 import de.s42.dl.netbeans.semantic.cache.DLSemanticCache;
 import de.s42.dl.netbeans.semantic.cache.DLSemanticCacheNode;
 import de.s42.dl.netbeans.semantic.model.Type;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -48,8 +46,6 @@ import org.openide.util.ImageUtilities;
  */
 public class TypeDLCompletionItem extends DLCompletionItem
 {
-
-	private final static Logger log = LogManager.getLogger(TypeDLCompletionItem.class.getName());
 
 	protected static ImageIcon TYPE_ICON
 		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/type.png"));
@@ -70,13 +66,13 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	public static void addTypeItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
 		String cacheKey = DLSemanticCache.getCacheKey(document);
-		
+
 		Optional<DLSemanticCacheNode> optCacheNode = CACHE.getCacheNode(cacheKey);
-		
+
 		if (optCacheNode.isEmpty()) {
 			return;
 		}
-		
+
 		DLSemanticCacheNode cacheNode = optCacheNode.orElseThrow();
 
 		for (Type type : cacheNode.findTypes(currentWord, caretOffset, true)) {
@@ -102,7 +98,7 @@ public class TypeDLCompletionItem extends DLCompletionItem
 	@Override
 	protected int getGotoLine()
 	{
-		return type.getStartLine()- 1;
+		return type.getStartLine() - 1;
 	}
 
 	@Override

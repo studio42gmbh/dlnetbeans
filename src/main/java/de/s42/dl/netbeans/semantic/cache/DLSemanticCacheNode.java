@@ -36,39 +36,65 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public interface DLSemanticCacheNode
 {
+
 	public DLSemanticCache getCache();
-	
+
 	public String getKey();
-	
+
 	public ModuleEntry getModule();
 
 	public Set<Type> getTypes(boolean resolveReferences);
 
 	/**
 	 * Add a new type to this node
+	 *
 	 * @param type
-	 * @return 
+	 *
+	 * @return
 	 */
 	public boolean addType(Type type);
-	
+
 	/**
-	 * Adds a loose reference to another node which might not yet have been resolved at a given location from locationContext (used to reflect relationships like require)
+	 * Adds a loose reference to another node which might not yet have been resolved at a given location from
+	 * locationContext (used to reflect relationships like require)
+	 *
 	 * @param key
 	 * @param locationContext
-	 * @return 
+	 *
+	 * @return
 	 */
 	public boolean addNodeReference(String key, ParserRuleContext locationContext);
 
 	/**
-	 * Adds a loose reference to another node which might not yet have been resolved at start of document (pos: 0) (used to reflect relationships like require)
+	 * Adds a loose reference to another node which might not yet have been resolved at start of document (pos: 0) (used
+	 * to reflect relationships like require)
+	 *
 	 * @param key
-	 * @return 
+	 *
+	 * @return
 	 */
 	public boolean addNodeReference(String key);
-	
-	// QUERIES
+
+	/**
+	 * Check if the given typeName is defined in this node before the given caretposition. Optionally recurse along the
+	 * referenced nodes.
+	 *
+	 * @param typeName
+	 * @param caretOffset
+	 * @param resolveReferences
+	 *
+	 * @return
+	 */
 	public boolean hasType(String typeName, int caretOffset, boolean resolveReferences);
-	
-	
+
+	/**
+	 * Return all types matching the given query. Optionally recurse along the referenced nodes.
+	 *
+	 * @param query
+	 * @param caretOffset
+	 * @param resolveReferences
+	 *
+	 * @return
+	 */
 	public Set<Type> findTypes(String query, int caretOffset, boolean resolveReferences);
 }

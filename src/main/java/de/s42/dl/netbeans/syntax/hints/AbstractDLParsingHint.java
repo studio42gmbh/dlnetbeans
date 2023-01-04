@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.syntax.hints;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import org.netbeans.modules.csl.api.Error.Badging;
 import org.netbeans.spi.editor.hints.Severity;
 import org.openide.filesystems.FileObject;
@@ -37,8 +35,6 @@ import org.openide.filesystems.FileObject;
  */
 public abstract class AbstractDLParsingHint implements Badging
 {
-
-	private final static Logger log = LogManager.getLogger(AbstractDLParsingHint.class.getName());
 
 	protected final FileObject fileObject;
 	protected final String display;
@@ -63,22 +59,19 @@ public abstract class AbstractDLParsingHint implements Badging
 		this.endPosition = endPosition;
 		this.parameters = parameters;
 	}
-	
+
 	public Severity getHintSeverity()
 	{
 		org.netbeans.modules.csl.api.Severity severity = getSeverity();
 		if (severity == org.netbeans.modules.csl.api.Severity.ERROR) {
 			return Severity.ERROR;
-		}
-		else if (severity == org.netbeans.modules.csl.api.Severity.WARNING) {
+		} else if (severity == org.netbeans.modules.csl.api.Severity.WARNING) {
 			return Severity.WARNING;
-		}
-		else if (severity == org.netbeans.modules.csl.api.Severity.INFO) {
+		} else if (severity == org.netbeans.modules.csl.api.Severity.INFO) {
 			return Severity.HINT;
-		}
-		else {
+		} else {
 			return Severity.VERIFIER;
-		}		
+		}
 	}
 
 	@Override

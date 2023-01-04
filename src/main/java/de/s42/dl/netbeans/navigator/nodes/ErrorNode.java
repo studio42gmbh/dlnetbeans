@@ -25,8 +25,6 @@
 //</editor-fold>
 package de.s42.dl.netbeans.navigator.nodes;
 
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -39,18 +37,16 @@ import org.openide.util.ImageUtilities;
 public class ErrorNode extends AbstractNode
 {
 
-	private final static Logger log = LogManager.getLogger(ErrorNode.class.getName());
-
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/error.png"); // NOI18N
-	
+
 	protected final Exception ex;
 
 	public ErrorNode(Exception ex)
 	{
 		super(Children.LEAF);
-		
+
 		assert ex != null;
-		
+
 		this.ex = ex;
 	}
 

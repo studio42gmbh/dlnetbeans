@@ -26,8 +26,6 @@
 package de.s42.dl.netbeans.semantic.model;
 
 import de.s42.dl.instances.DefaultDLModule;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.Objects;
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -37,8 +35,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public abstract class Entry
 {
-
-	private final static Logger log = LogManager.getLogger(Entry.class.getName());
 
 	protected int startLine;
 	protected int startPosition;
@@ -166,8 +162,10 @@ public abstract class Entry
 	public int hashCode()
 	{
 		int hash = 7;
-		hash = 89 * hash + Objects.hashCode(this.identifier);
-		hash = 89 * hash + Objects.hashCode(this.moduleId);
+		hash = 79 * hash + this.startOffset;
+		hash = 79 * hash + this.endOffset;
+		hash = 79 * hash + Objects.hashCode(this.identifier);
+		hash = 79 * hash + Objects.hashCode(this.moduleId);
 		return hash;
 	}
 
@@ -184,6 +182,12 @@ public abstract class Entry
 			return false;
 		}
 		final Entry other = (Entry) obj;
+		if (this.startOffset != other.startOffset) {
+			return false;
+		}
+		if (this.endOffset != other.endOffset) {
+			return false;
+		}
 		if (!Objects.equals(this.identifier, other.identifier)) {
 			return false;
 		}

@@ -45,6 +45,15 @@ public enum DLFoldType
 			1,
 			"{...}"
 		)
+	)),
+	MultiLineComment(FoldType.create(
+		"comment",
+		"Comment",
+		new FoldTemplate(
+			2,
+			2,
+			"/*...*/"
+		)
 	));
 
 	public final FoldType type;

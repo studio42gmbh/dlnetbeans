@@ -1,4 +1,5 @@
-/*
+/*^ More Infos about DL
+ * 
  * For further infos on DL read https://github.com/studio42gmbh/dl/wiki
  */
 assert $env.os ~= ".*Windows.*" : "Needs Windows to work properly but OS is " + $env.os;

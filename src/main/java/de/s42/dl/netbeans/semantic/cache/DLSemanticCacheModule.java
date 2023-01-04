@@ -199,12 +199,20 @@ class DLSemanticCacheModule implements DLSemanticCacheNode
 		return result;
 	}
 
+	/**
+	 * A query is a case independent start with in this case
+	 * @param query
+	 * @param caretOffset
+	 * @param resolveReferences
+	 * @return 
+	 */
 	@Override
 	public Set<Type> findTypes(String query, int caretOffset, boolean resolveReferences)
 	{
+		String queryLowerCase = query.toLowerCase();
 		HashSet<Type> result = new HashSet<>(types.values().stream().filter((type) -> {
 			return // Empty filter or match start case independent
-				(query.isBlank() || type.getIdentifier().toLowerCase().startsWith(query.toLowerCase()))
+				(query.isBlank() || type.getIdentifier().toLowerCase().startsWith(queryLowerCase))
 				// End of type location before caret offset
 				&& isEntryVisible(type, caretOffset);
 		}).toList());

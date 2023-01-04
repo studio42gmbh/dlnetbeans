@@ -69,6 +69,16 @@ public class DLIndenter
 		}
 	}
 
+	/**
+	 * Reindents the given range. It spools the tokens from beginning to that point.
+	 *
+	 * @todo might get optimized by reusing tokenstream from last region before if used in multiregion call (observed
+	 * calls were not)
+	 * @param startIndex
+	 * @param endIndex
+	 *
+	 * @throws BadLocationException
+	 */
 	public void reindentRegion(int startIndex, int endIndex) throws BadLocationException
 	{
 		assert startIndex >= 0;
@@ -96,15 +106,13 @@ public class DLIndenter
 				break;
 			}
 
-			// Just indent in given region
+			// Just indent in given region and after newline
 			if (justNewline && offset >= startIndex) {
 
+				// Replace old indent with new
 				int adjustedIndent = Math.max(0, indent - countDirectClosingScopesInThisLine(tokens));
-
 				int lineOff = context.lineStartOffset(offset);
 				int newLineIndent = adjustedIndent * indentLevel;
-				//int lineIndent = context.lineIndent(lineOff);
-				//log.warn("justNewline", lineIndent, newLineIndent);
 				context.modifyIndent(lineOff, newLineIndent);
 
 				// Adjust for added whitespaces

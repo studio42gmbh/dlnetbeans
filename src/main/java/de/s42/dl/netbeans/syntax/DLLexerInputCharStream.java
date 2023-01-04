@@ -62,9 +62,9 @@ public class DLLexerInputCharStream implements CharStream
 		for (int i = 0; i < toread; i++) {
 			input.read();
 		}
-		
+
 		String ret = String.valueOf(input.readText(0, end - start));
-		
+
 		if (toread > 0) {
 			input.backup(toread);
 		}
@@ -111,7 +111,7 @@ public class DLLexerInputCharStream implements CharStream
 	@Override
 	public void release(int marker)
 	{
-		// What is done here?
+		// Nothing todo for now
 	}
 
 	@Override

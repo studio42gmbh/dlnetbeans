@@ -67,6 +67,42 @@ public final class FileObjectHelper
 	}
 
 	/**
+	 * Retrieves the word before the given caret position
+	 *
+	 * @param document
+	 * @param caretOffset
+	 *
+	 * @return the word or an empty string
+	 */
+	public static String getWordBefore(BaseDocument document, int caretOffset)
+	{
+		assert document != null;
+		assert caretOffset >= 0;
+
+		try {
+
+			document.readLock();
+
+			StringBuilder result = new StringBuilder();
+
+			for (int i = caretOffset - 1; i > 0; i--) {
+				char c = document.getChars(i, 1)[0];
+				if (!document.isIdentifierPart(c)
+					&& c != '.') {
+					break;
+				}
+				result.append(c);
+			}
+
+			document.readUnlock();
+
+			return result.reverse().toString();
+		} catch (BadLocationException ex) {
+			return "";
+		}
+	}
+
+	/**
 	 * Constructs a new TokenStream with an underlying DLLexer from a given text
 	 *
 	 * @param content

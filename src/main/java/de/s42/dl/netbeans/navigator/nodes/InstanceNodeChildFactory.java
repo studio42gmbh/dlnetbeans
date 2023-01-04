@@ -26,10 +26,7 @@
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.DLAttribute;
-import de.s42.dl.DLEntity;
 import de.s42.dl.DLInstance;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.util.List;
 import java.util.Map;
 import org.openide.nodes.ChildFactory;
@@ -41,8 +38,6 @@ import org.openide.nodes.Node;
  */
 public class InstanceNodeChildFactory extends ChildFactory<Object>
 {
-
-	private final static Logger log = LogManager.getLogger(InstanceNodeChildFactory.class.getName());
 
 	protected final DLInstance instance;
 
@@ -59,7 +54,7 @@ public class InstanceNodeChildFactory extends ChildFactory<Object>
 		//list.addAll(instance.getType().getAttributes());
 		list.addAll(instance.getChildren());
 		list.addAll(instance.getAttributes().entrySet());
-		
+
 		return true;
 	}
 
@@ -68,23 +63,23 @@ public class InstanceNodeChildFactory extends ChildFactory<Object>
 	{
 		if (entity instanceof DLInstance) {
 			return new InstanceNode((DLInstance) entity);
-		} 
-		
+		}
+
 		if (entity instanceof DLAttribute) {
 			return new AttributeNode((DLAttribute) entity);
-		} 
-		
+		}
+
 		if (entity instanceof String) {
 			return new AttributeNode((DLAttribute) entity);
 		}
-		
+
 		if (entity instanceof Map.Entry) {
 			return new ValueNode(
 				(String) ((Map.Entry) entity).getKey(),
 				((Map.Entry) entity).getValue()
 			);
 		}
-		
+
 		return null;
 	}
 }

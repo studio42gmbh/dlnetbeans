@@ -1,1 +1,1 @@
-Creates a new Data Language File.
+Creates a new Data Language (DL) File. Design and define your data in a simple and extensible format.

@@ -59,7 +59,7 @@ public class DLParserResult extends ParserResult
 	{
 		return addWarning(message, context.getStart().getStartIndex(), context.getStop().getStopIndex() + 1);
 	}
-	
+
 	public boolean addWarning(String message, Token token)
 	{
 		return addWarning(message, token.getStartIndex(), token.getStopIndex() + 1);
@@ -72,7 +72,7 @@ public class DLParserResult extends ParserResult
 		return addWarning(new DLParsingWarning(
 			fileObject,
 			message,
-			"Warning " + message,
+			message,
 			startPosition,
 			endPosition
 		));
@@ -102,7 +102,7 @@ public class DLParserResult extends ParserResult
 		return addError(new DLParsingError(
 			fileObject,
 			message,
-			"Error " + message,
+			message,
 			startPosition,
 			endPosition
 		));
@@ -118,7 +118,9 @@ public class DLParserResult extends ParserResult
 	@Override
 	protected void invalidate()
 	{
-		// Do nothing here -> might get called and afterwards it will be used again to render hints ... seems to be an issue with NB16 atm
+		// Do nothing here -> 
+		// ATTENTION: might get called and afterwards it will be used again to render hints 
+		// ... seems to be an issue with NB16 atm
 	}
 
 	@Override

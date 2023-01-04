@@ -27,9 +27,7 @@ package de.s42.dl.netbeans.completion;
 
 import de.s42.dl.netbeans.completion.items.KeywordDLCompletionItem;
 import de.s42.dl.netbeans.completion.items.TypeDLCompletionItem;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
-import javax.swing.text.BadLocationException;
+import de.s42.dl.netbeans.util.FileObjectHelper;
 import javax.swing.text.Document;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.spi.editor.completion.CompletionResultSet;
@@ -42,55 +40,18 @@ import org.netbeans.spi.editor.completion.support.AsyncCompletionQuery;
 public class DLCompletionQuery extends AsyncCompletionQuery
 {
 
-	private final static Logger log = LogManager.getLogger(DLCompletionQuery.class.getName());
-	
 	@Override
 	protected void query(CompletionResultSet result, Document document, int caretOffset)
 	{
 		assert result != null;
 		assert document != null;
-		
-		BaseDocument baseDoc = (BaseDocument) document;
 
-		baseDoc.readLock();
-
-		String currentWord = getWordBefore(baseDoc, caretOffset);
-
-		baseDoc.readUnlock();
+		String currentWord = FileObjectHelper.getWordBefore((BaseDocument) document, caretOffset);
 
 		KeywordDLCompletionItem.addKeywordItems(result, document, currentWord, caretOffset);
-		
+
 		TypeDLCompletionItem.addTypeItems(result, document, currentWord, caretOffset);
 
 		result.finish();
-	}
-
-	/**
-	 * Retrieves the word before the given caret position
-	 *
-	 * @param document
-	 * @param caretOffset
-	 * @return the word or an empty string
-	 */
-	protected String getWordBefore(BaseDocument document, int caretOffset)
-	{
-		assert document != null;
-		
-		try {
-
-			StringBuilder result = new StringBuilder();
-
-			for (int i = caretOffset - 1; i > 0; i--) {
-				char c = document.getChars(i, 1)[0];
-				if (!document.isIdentifierPart(c)) {
-					break;
-				}
-				result.append(c);
-			}
-
-			return result.reverse().toString();
-		} catch (BadLocationException ex) {
-			return "";
-		}
 	}
 }

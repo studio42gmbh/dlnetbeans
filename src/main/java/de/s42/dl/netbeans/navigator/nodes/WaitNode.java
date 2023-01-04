@@ -26,8 +26,6 @@
 package de.s42.dl.netbeans.navigator.nodes;
 
 import de.s42.dl.netbeans.navigator.DLNavigatorPanel;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -40,8 +38,6 @@ import org.openide.util.NbBundle;
  */
 public class WaitNode extends AbstractNode
 {
-
-	private final static Logger log = LogManager.getLogger(WaitNode.class.getName());
 
 	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/wait.png"); // NOI18N
 

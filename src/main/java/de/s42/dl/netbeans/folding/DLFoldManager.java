@@ -25,15 +25,18 @@
 //</editor-fold>
 package de.s42.dl.netbeans.folding;
 
+import de.s42.dl.netbeans.util.FileObjectHelper;
+import de.s42.dl.parser.DLLexer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
-import java.util.StringTokenizer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.BadLocationException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 import org.netbeans.api.editor.fold.Fold;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.editor.BaseDocument;
@@ -50,6 +53,8 @@ import org.openide.util.Exceptions;
  */
 public class DLFoldManager implements FoldManager
 {
+
+	public final static String COMMENT_COLLAPSE_PREFIX = "/*^";
 
 	private final static Logger log = LogManager.getLogger(DLFoldManager.class.getName());
 
@@ -74,10 +79,10 @@ public class DLFoldManager implements FoldManager
 				operation.addToHierarchy(foldInfo.getType(),
 					foldInfo.getStart(),
 					foldInfo.getEnd(),
-					null,
-					null,
-					null,
-					null,
+					foldInfo.getCollapsed(),
+					foldInfo.getTemplate(),
+					foldInfo.getDescriptionOverride(),
+					foldInfo.getExtraInfo(),
 					transaction);
 			} catch (BadLocationException ex) {
 				Exceptions.printStackTrace(ex);
@@ -99,48 +104,56 @@ public class DLFoldManager implements FoldManager
 
 	protected List<FoldInfo> parseFolds()
 	{
-		try {
-			List<FoldInfo> result = new ArrayList<>();
+		List<FoldInfo> result = new ArrayList<>();
+		Stack<Integer> openedScopes = new Stack();
+		TokenStream tokens = FileObjectHelper.getDLTokenStream(FileObjectHelper.getText(getDocument()));
 
-			BaseDocument document = getDocument();
+		while (true) {
+			Token token = tokens.LT(1);
 
-			// @todo This is the first draft implementation just finding brackets and using StringTokenizer - has to be reworked
-			document.readLock();
-			String text = document.getText(document.getStartPosition().getOffset(), document.getEndPosition().getOffset());
-			document.readUnlock();
+			if (token.getType() == DLLexer.EOF) {
+				break;
+			} else if (token.getType() == DLLexer.SCOPE_OPEN) {
+				openedScopes.push(token.getStartIndex());
+			} // Add fold for scopes
+			else if (token.getType() == DLLexer.SCOPE_CLOSE) {
+				if (!openedScopes.isEmpty()) {
+					int startPosition = openedScopes.pop();
 
-			StringTokenizer tok = new StringTokenizer(text, "{}", true);
+					FoldInfo foldInfo = FoldInfo.range(
+						startPosition,
+						token.getStopIndex() + 1,
+						DLFoldType.Scope.type
+					);
+					result.add(foldInfo);
+				}
+			} // Add fold for multiline comments 
+			else if (token.getType() == DLLexer.MULTILINE_COMMENT) {
 
-			int position = document.getStartPosition().getOffset();
-			Stack<Integer> opened = new Stack();
-			while (tok.hasMoreTokens()) {
+				String commentText = token.getText();
+				boolean collapsed = commentText.startsWith(COMMENT_COLLAPSE_PREFIX);
 
-				String token = tok.nextToken();
-
-				if (token.equals("{")) {
-					opened.push(position);
-				} else if (token.equals("}")) {
-
-					// If there is a matched start -> pop from stack and create fold
-					if (!opened.isEmpty()) {
-						int startPosition = opened.pop();
-
-						FoldInfo foldInfo = FoldInfo.range(
-							startPosition,
-							position + 1,
-							DLFoldType.Scope.type
-						);
-						result.add(foldInfo);
-					}
+				// Parse first line of multiline comment out as text for fold
+				String description;
+				int nlIndex = commentText.indexOf('\n');
+				if (nlIndex > -1) {
+					description = commentText.substring(3, nlIndex).trim();
+				} else {
+					description = DLFoldType.MultiLineComment.type.getTemplate().getDescription();
 				}
 
-				position += token.length();
+				FoldInfo foldInfo = FoldInfo.range(
+					token.getStartIndex(),
+					token.getStopIndex() + 1,
+					DLFoldType.MultiLineComment.type
+				).withDescription(description).collapsed(collapsed);
+				result.add(foldInfo);
 			}
 
-			return result;
-		} catch (BadLocationException ex) {
-			throw new RuntimeException(ex);
+			tokens.consume();
 		}
+
+		return result;
 	}
 
 	public BaseDocument getDocument()
@@ -201,11 +214,7 @@ public class DLFoldManager implements FoldManager
 	 * handling ATTENTION: It is important to have this Factory inside the manager otherwise the factory will not be
 	 * recognized by Netbeans!
 	 */
-	@MimeRegistration(
-		mimeType = "", 
-		service = FoldManagerFactory.class,
-		position = 421
-	)
+	@MimeRegistration(mimeType = "", service = FoldManagerFactory.class, position = 421)
 	public static class DLFoldManagerFactory implements FoldManagerFactory
 	{
 

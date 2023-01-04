@@ -52,10 +52,10 @@ public class DLCompletionProvider implements CompletionProvider
 		if (queryType != CompletionProvider.COMPLETION_QUERY_TYPE) {
 			return null;
 		}
-		
+
 		return new AsyncCompletionTask(new DLCompletionQuery(), component);
 	}
-	
+
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
 	public int getAutoQueryTypes(JTextComponent jtc, String string)

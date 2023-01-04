@@ -27,8 +27,6 @@ package de.s42.dl.netbeans.completion.items;
 
 import de.s42.dl.language.DLKeyword;
 import de.s42.dl.netbeans.completion.DLCompletionItem;
-import de.s42.log.LogManager;
-import de.s42.log.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.ImageIcon;
@@ -43,36 +41,34 @@ import org.openide.util.ImageUtilities;
  */
 public class KeywordDLCompletionItem extends DLCompletionItem
 {
-	
-	private final static Logger log = LogManager.getLogger(KeywordDLCompletionItem.class.getName());
-	
+
 	protected static ImageIcon KEYWORD_ICON
 		= new ImageIcon(ImageUtilities.loadImage("de/s42/dl/netbeans/dl-icon-keyword.png"));
-	
+
 	protected final DLKeyword keyword;
-	
+
 	public KeywordDLCompletionItem(DLKeyword keyword, Document document, int insertionOffset, int caretOffset)
 	{
 		super(document, insertionOffset, caretOffset, true);
-		
+
 		assert keyword != null;
-		
+
 		this.keyword = keyword;
 	}
-	
+
 	public static void addKeywordItems(CompletionResultSet result, Document document, String currentWord, int caretOffset)
 	{
 		for (DLKeyword keyword : DLKeyword.values()) {
-			
+
 			if (currentWord.isBlank() || keyword.keyword.startsWith(currentWord.toLowerCase())) {
-				
+
 				CompletionItem item = new KeywordDLCompletionItem(
 					keyword,
 					document,
 					caretOffset - currentWord.length(),
 					caretOffset
 				);
-				
+
 				result.addItem(item);
 			}
 		}
@@ -84,37 +80,37 @@ public class KeywordDLCompletionItem extends DLCompletionItem
 	{
 		return DocumentationHtmlFactory.createDocumentationUrl(keyword);
 	}
-	
+
 	@Override
 	protected String getDocumentationHtmlText()
 	{
 		return DocumentationHtmlFactory.createDocumentationHtml(keyword);
 	}
-	
+
 	@Override
 	protected String getRightHtmlText()
 	{
 		return DocumentationHtmlFactory.createRightTextHtml(keyword);
 	}
-	
+
 	@Override
 	protected ImageIcon getIcon()
 	{
 		return KEYWORD_ICON;
 	}
-	
+
 	@Override
 	public int getSortPriority()
 	{
 		return 100;
 	}
-	
+
 	@Override
 	public String getText()
 	{
-		return keyword.keyword.toString();
+		return keyword.keyword;
 	}
-	
+
 	@Override
 	public void setText(String text)
 	{

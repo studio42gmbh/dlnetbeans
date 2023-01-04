@@ -1,0 +1,10 @@
+
+type File {
+	String t;
+}
+
+type Folder contains Folder, File {
+	String t;
+}
+
+Folder rootFolder @export {}

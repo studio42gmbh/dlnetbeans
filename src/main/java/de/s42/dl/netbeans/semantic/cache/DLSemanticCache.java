@@ -53,20 +53,19 @@ public class DLSemanticCache
 
 	private final static Logger log = LogManager.getLogger(DLSemanticCache.class.getName());
 
-	//protected final Map<String, Set<Type>> typesByKey = Collections.synchronizedMap(new HashMap<>());
 	protected final Map<String, DLSemanticCacheNode> nodesByKey = Collections.synchronizedMap(new HashMap<>());
 
-	// <editor-fold desc="public static String getCacheKey(.)" defaultstate="collapsed">
+	// <editor-fold desc="public static String getCacheKey(<params>)" defaultstate="collapsed">
 	public static String getCacheKey(String moduleId)
 	{
 		assert moduleId != null;
 
 		// Check if the id refs a valid path -> If so return the absolute normalized version of it
-		Path modulePath = Path.of(moduleId);		
+		Path modulePath = Path.of(moduleId);
 		if (Files.isRegularFile(modulePath)) {
 			return modulePath.toAbsolutePath().normalize().toString();
 		}
-		
+
 		// If a module id does not represent a valid file -> return the given id as key
 		return moduleId;
 	}
@@ -104,6 +103,9 @@ public class DLSemanticCache
 
 	public DLSemanticCacheNode createCacheNode(String key, ModuleEntry module)
 	{
+		assert key != null;
+		assert module != null;
+
 		return new DLSemanticCacheModule(this, key, module);
 	}
 

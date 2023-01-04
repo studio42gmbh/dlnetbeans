@@ -1,0 +1,24 @@
+/*^ Meine DL Info
+ *
+ * Ein comment das auto collapsed wird
+ *
+ */
+
+     require "test2.project.dl";
+
+type Project {
+String		display @required;
+		String		description @required;
+	UUID		id @required;
+				}
+
+       Folder local {
+String t : 22;
+  
+Folder src {
+String t : 5;
+      }     
+    }
+       
+
+   //DLNBProject pp {}
