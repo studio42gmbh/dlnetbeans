@@ -25,6 +25,7 @@
 //</editor-fold>
 package de.s42.dl.netbeans.navigator.nodes;
 
+import de.s42.dl.netbeans.syntax.DLParserResult;
 import java.awt.Image;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -34,27 +35,39 @@ import org.openide.util.ImageUtilities;
  *
  * @author Benjamin Schiller
  */
-public class ErrorNode extends AbstractNode
+public class ResultNode extends AbstractNode
 {
 
-	private final Image ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/error.png"); // NOI18N
+	public final Image ERROR_ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/error.png"); // NOI18N
+	public final Image WARNING_ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/warning.png"); // NOI18N
+	public final Image INFO_ICON = ImageUtilities.loadImage("de/s42/dl/netbeans/navigator/info.png"); // NOI18N
 
-	protected final Exception ex;
+	protected final DLParserResult result;
 
-	public ErrorNode(Exception ex)
+	public ResultNode(DLParserResult result)
 	{
 		super(Children.LEAF);
 
-		assert ex != null;
+		assert result != null;
 
-		this.ex = ex;
+		this.result = result;
+
+		setChildren(Children.create(new ResultNodeChildFactory(this.result), true));
 	}
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	@Override
 	public Image getIcon(int type)
 	{
-		return ICON;
+		if (result.hasErrors()) {
+			return ERROR_ICON;			
+		}
+		
+		if (result.hasWarnings()) {
+			return WARNING_ICON;			
+		}
+		
+		return INFO_ICON;
 	}
 
 	@Override
@@ -66,7 +79,17 @@ public class ErrorNode extends AbstractNode
 	@java.lang.Override
 	public java.lang.String getDisplayName()
 	{
-		return "Error " + ex.getMessage();
+		StringBuilder builder = new StringBuilder();
+		
+		if (result.hasErrors()) {
+			builder.append(result.getErrorCount()).append(" Error(s) ");
+		}
+		
+		if (result.hasWarnings()) {
+			builder.append(result.getWarningCount()).append(" Warning(s) ");
+		}
+		
+		return builder.toString();
 	}
 	//</editor-fold>
 }

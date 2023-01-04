@@ -28,9 +28,12 @@ package de.s42.dl.netbeans.syntax;
 import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.core.DefaultCore;
 import de.s42.dl.core.resolvers.FileCoreResolver;
-import de.s42.dl.exceptions.ReservedKeyword;
+import de.s42.dl.exceptions.DLException;
+import de.s42.dl.exceptions.DLParserException;
+import de.s42.dl.exceptions.ParserException;
 import de.s42.dl.netbeans.semantic.DLSemanticParser;
 import de.s42.dl.netbeans.syntax.hints.DLParsingError;
+import de.s42.dl.netbeans.util.FileObjectHelper;
 import de.s42.dl.parser.DLLexer;
 import de.s42.dl.parser.DLParser;
 import de.s42.log.LogManager;
@@ -117,13 +120,15 @@ public class DLSyntaxParser extends Parser
 			parserResult.addError(
 				message,
 				startPosition,
-				endPosition
+				endPosition,
+				line,
+				position + 1
 			);
 		}
 	}
 
 	@Override
-	public synchronized void parse(Snapshot snapshot, Task task, SourceModificationEvent event) throws ParseException
+	public void parse(Snapshot snapshot, Task task, SourceModificationEvent event) throws ParseException
 	{
 		//log.debug("parse", snapshot.getSource().getFileObject().getName());
 
@@ -131,55 +136,115 @@ public class DLSyntaxParser extends Parser
 
 		parserResult = new DLParserResult(snapshot);
 		final FileObject fileObject = snapshot.getSource().getFileObject();
+		final String moduleId = Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
+
+		String dlContent = String.valueOf(parserResult.getSnapshot().getText());
+
+		// Do static analysis
+		analyzeStatic(moduleId, dlContent);
+
+		// do dynamic analysis
+		analyzeDynamic(moduleId, dlContent);
+
+		log.stopDebug("DLSyntaxParser.parse");
+	}
+
+	protected void createErrorHintFromException(Exception ex)
+	{
+		assert ex != null;
+
+		FileObject fileObject = parserResult.getSnapshot().getSource().getFileObject();
+
+		log.debug("createErrorHintFromException", ex.getMessage(), ex.getClass().getName());
+
+		if (ex instanceof ParserException) {
+
+			int startPosition = ((ParserException) ex).getStartOffset();
+			int endPosition = ((ParserException) ex).getEndOffset();
+			int line = ((ParserException) ex).getStartLine();
+			int positionInLine = ((ParserException) ex).getStartPosition();
+
+			parserResult.addError(new DLParsingError(
+				fileObject,
+				ex.getMessage(),
+				ex.getMessage(),
+				startPosition,
+				endPosition,
+				line,
+				positionInLine
+			));
+		} else if (ex instanceof DLParserException) {
+
+			int startPosition = ((DLParserException) ex).getStartOffset();
+			int endPosition = ((DLParserException) ex).getEndOffset();
+			int line = ((DLParserException) ex).getStartLine();
+			int positionInLine = ((DLParserException) ex).getStartPosition();
+
+			parserResult.addError(new DLParsingError(
+				fileObject,
+				ex.getMessage(),
+				ex.getMessage(),
+				startPosition,
+				endPosition,
+				line,
+				positionInLine
+			));
+		} else {
+
+			//log.error(ex.getMessage());
+			int startPosition = 0;
+			int endPosition = 0;
+			int line = 0;
+			int positionInLine = 0;
+
+			parserResult.addError(new DLParsingError(
+				fileObject,
+				ex.getMessage(),
+				ex.getMessage(),
+				startPosition,
+				endPosition,
+				line,
+				positionInLine
+			));
+		}
+	}
+
+	protected void analyzeStatic(String moduleId, String content)
+	{
+		assert moduleId != null;
+		assert content != null;
 
 		try {
 
 			BaseDLCore core = new BaseDLCore(true);
 			DefaultCore.loadResolvers(core);
 			FileCoreResolver.setLocalPathInCore(core, Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
-			String dlContent = String.valueOf(snapshot.getText());
-			String moduleId = Path.of(fileObject.getPath()).toAbsolutePath().normalize().toString();
 
-			parseContent(parserResult, moduleId, dlContent, core);
+			parseContent(parserResult, moduleId, content, core);
 
 		} // Special handling for reserved keyword - this might to be changed in DL parsing as this induces issues -> Should add errors but not throw
-		catch (ReservedKeyword ex) {
-
-			StyledDocument doc = (StyledDocument) parserResult.getSnapshot().getSource().getDocument(false);
-			int off = NbDocument.findLineOffset(doc, ex.getLine() - 1) + ex.getPosition();
-
-			int startPosition = off;
-			int endPosition = off + 1;
-
-			parserResult.addError(new DLParsingError(
-				fileObject,
-				ex.getMessage(),
-				ex.getMessage(),
-				startPosition,
-				endPosition
-			));
-		} // Handle an unknown error
 		catch (RuntimeException ex) {
 
-			log.error(ex);
-
-			int startPosition = 0;
-			int endPosition = 0;
-
-			parserResult.addError(new DLParsingError(
-				fileObject,
-				ex.getMessage(),
-				ex.getMessage(),
-				startPosition,
-				endPosition
-			));
+			createErrorHintFromException(ex);
 		}
+	}
 
-		log.stopDebug("DLSyntaxParser.parse");
+	protected void analyzeDynamic(String moduleId, String content)
+	{
+		assert moduleId != null;
+		assert content != null;
+
+		try {
+
+			parserResult.setModule(FileObjectHelper.parseModule(moduleId, content));
+		} catch (RuntimeException | DLException ex) {
+
+			createErrorHintFromException(ex);
+		}
 	}
 
 	@Override
-	public synchronized Result getResult(Task task) throws ParseException
+	public Result getResult(Task task) throws ParseException
 	{
 		//log.debug("getResult", parserResult.getSnapshot().getSource().getFileObject().getName());
 

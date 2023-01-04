@@ -7,4 +7,10 @@ type Folder contains Folder, File {
 	String t;
 }
 
-Folder rootFolder @export {}
+String t;
+
+Folder rootFolder @export {
+	//String x : "";
+}
+
+//String t;

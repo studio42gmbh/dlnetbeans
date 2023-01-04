@@ -4,21 +4,20 @@
  *
  */
 
-     require "test2.project.dl";
+require "test2.project.dl";
 
 type Project {
-String		display @required;
-		String		description @required;
+	String		display @required;
+	String		description @required;
 	UUID		id @required;
-				}
+}
 
-       Folder local {
-String t : 22;
-  
-Folder src {
-String t : 5;
-      }     
-    }
-       
+Folder local {
+	String t : 22;
+	
+	Folder src {
+		String t : 5;
+	}     
+}
 
-   //DLNBProject pp {}
+//DLNBProject pp {}

@@ -23,31 +23,53 @@
  * THE SOFTWARE.
  */
 //</editor-fold>
-package de.s42.dl.netbeans.syntax.hints;
+package de.s42.dl.netbeans.navigator.nodes;
 
-import org.netbeans.modules.csl.api.Severity;
-import org.openide.filesystems.FileObject;
+import de.s42.dl.netbeans.syntax.DLParserResult;
+import de.s42.dl.netbeans.syntax.hints.AbstractDLParsingHint;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.openide.nodes.ChildFactory;
+import org.openide.nodes.Node;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class DLParsingWarning extends AbstractDLParsingHint
+public class ResultNodeChildFactory extends ChildFactory<Object>
 {
 
-	public DLParsingWarning(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine)
-	{
-		this(fileObject, display, description, startPosition, endPosition, line, positionInLine, null);
-	}
+	protected final DLParserResult result;
 
-	public DLParsingWarning(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine, Object[] parameters)
+	public ResultNodeChildFactory(DLParserResult result)
 	{
-		super(fileObject, display, description, startPosition, endPosition, line, positionInLine, parameters);
+		assert result != null;
+
+		this.result = result;
 	}
 
 	@Override
-	public Severity getSeverity()
+	protected boolean createKeys(List<Object> list)
 	{
-		return Severity.WARNING;
+		List<AbstractDLParsingHint> hints = new ArrayList<>(result.getDiagnostics());
+		
+		Collections.sort(hints, (hint1, hint2) -> {
+			return Integer.compare(hint1.getStartPosition(), hint2.getStartPosition());
+		});
+		
+		list.addAll(hints);
+
+		return true;
+	}
+
+	@Override
+	protected Node createNodeForKey(Object entity)
+	{
+		if (entity instanceof AbstractDLParsingHint) {
+			return new HintNode((AbstractDLParsingHint) entity);
+		}
+
+		return null;
 	}
 }

@@ -25,22 +25,14 @@
 //</editor-fold>
 package de.s42.dl.netbeans.navigator;
 
-import de.s42.dl.netbeans.DLDataObject;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.util.Collection;
 import java.util.Iterator;
-import javax.swing.SwingUtilities;
 import org.netbeans.spi.navigator.NavigatorPanel;
-import org.openide.filesystems.FileChangeAdapter;
-import org.openide.filesystems.FileChangeListener;
-import org.openide.filesystems.FileEvent;
 import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Lookup;
-import org.openide.util.LookupEvent;
-import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
 
 /**
@@ -53,13 +45,7 @@ public class DLNavigatorPanel implements NavigatorPanel
 
 	private final static Logger log = LogManager.getLogger(DLNavigatorPanel.class.getName());
 
-	private static final Lookup.Template DL_DATA = new Lookup.Template(DLDataObject.class);
-
-	protected DLNNavigatorPanelComponent component;
-	protected Lookup.Result currentContext;
-	protected LookupListener contextListener;
-	private long lastSaveTime = -1;
-	private FileChangeListener fileChangeListener;
+	protected static DLNNavigatorPanelComponent component;
 
 	@Override
 	public String getDisplayName()
@@ -73,8 +59,7 @@ public class DLNavigatorPanel implements NavigatorPanel
 		return NbBundle.getMessage(DLNavigatorPanel.class, "Navigator_DisplayHint");
 	}
 
-	@Override
-	public synchronized DLNNavigatorPanelComponent getComponent()
+	public static synchronized DLNNavigatorPanelComponent getGlobalComponent()
 	{
 		if (component == null) {
 			component = new DLNNavigatorPanelComponent();
@@ -84,24 +69,19 @@ public class DLNavigatorPanel implements NavigatorPanel
 	}
 
 	@Override
+	public DLNNavigatorPanelComponent getComponent()
+	{
+		return getGlobalComponent();
+	}
+
+	@Override
 	public void panelActivated(Lookup context)
 	{
-		assert context != null;
-
-		currentContext = context.lookup(DL_DATA);
-		currentContext.addLookupListener(getContextListener());
-		Collection data = currentContext.allInstances();
-
-		setNewContent(getDataObject(data));
 	}
 
 	@Override
 	public void panelDeactivated()
 	{
-		currentContext.removeLookupListener(getContextListener());
-		currentContext = null;
-
-		setNewContent(null);
 	}
 
 	@Override
@@ -125,79 +105,5 @@ public class DLNavigatorPanel implements NavigatorPanel
 			}
 		}
 		return dataObject;
-	}
-
-	protected void setNewContent(DataObject dataObject)
-	{
-		// Remove file change listener from old data object
-		DataObject oldDataObject = getComponent().getDataObject();
-		if (oldDataObject != null) {
-			oldDataObject.getPrimaryFile().removeFileChangeListener(getFileChangeListener());
-		}
-
-		getComponent().setNewContent((DLDataObject) dataObject);
-
-		// Add file change listener to new data object
-		if (dataObject != null) {
-			dataObject.getPrimaryFile().addFileChangeListener(getFileChangeListener());
-		}
-	}
-
-	/**
-	 * Accessor for listener to context
-	 */
-	protected synchronized LookupListener getContextListener()
-	{
-		if (contextListener == null) {
-			contextListener = new ContextListener();
-		}
-		return contextListener;
-	}
-
-	protected synchronized FileChangeListener getFileChangeListener()
-	{
-		if (fileChangeListener == null) {
-			fileChangeListener = new DLFileChangeAdapter();
-		}
-
-		return fileChangeListener;
-	}
-
-	/**
-	 * Listens to changes of context and triggers proper action
-	 */
-	private class ContextListener implements LookupListener
-	{
-
-		@Override
-		public void resultChanged(LookupEvent ev)
-		{
-			Collection data = ((Lookup.Result) ev.getSource()).allInstances();
-			setNewContent(getDataObject(data));
-		}
-	}
-
-	private class DLFileChangeAdapter extends FileChangeAdapter
-	{
-
-		@Override
-		public void fileChanged(final FileEvent event)
-		{
-			assert event != null;
-
-			//log.debug("fileChanged", event.getFile().getName());
-			if (event.getTime() > lastSaveTime) {
-				lastSaveTime = System.currentTimeMillis();
-
-				// Refresh image viewer
-				SwingUtilities.invokeLater(() -> {
-					try {
-						getComponent().setNewContent((DLDataObject) DataObject.find(event.getFile()));
-					} catch (DataObjectNotFoundException ex) {
-						throw new RuntimeException(ex);
-					}
-				});
-			}
-		}
 	}
 }

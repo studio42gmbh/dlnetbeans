@@ -25,6 +25,11 @@
 //</editor-fold>
 package de.s42.dl.netbeans.util;
 
+import de.s42.dl.DLModule;
+import de.s42.dl.core.BaseDLCore;
+import de.s42.dl.core.DefaultCore;
+import de.s42.dl.core.resolvers.FileCoreResolver;
+import de.s42.dl.exceptions.DLException;
 import de.s42.dl.parser.DLLexer;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
@@ -132,6 +137,48 @@ public final class FileObjectHelper
 		assert fileObject != null;
 
 		return resolveAutoRequireDl(Path.of(fileObject.getPath()));
+	}
+
+	public static DLModule parseModule(String moduleId) throws DLException
+	{
+		return parseModule(moduleId, null);
+	}
+
+	public static DLModule parseModule(String moduleId, String content) throws DLException
+	{
+		try {
+			// Parse the DL and create module as root
+			log.start("FileObjectHelper.parseModule");
+			// @todo Load as little as possible to make sure modules can have a plain core
+			BaseDLCore core = new BaseDLCore(true);
+			DefaultCore.loadResolvers(core);
+			FileCoreResolver.setLocalPathInCore(core, Path.of(moduleId).getParent());
+			DefaultCore.loadAnnotations(core);
+			DefaultCore.loadPragmas(core);
+			DefaultCore.loadTypes(core);
+			DefaultCore.loadExports(core);
+
+			DLModule autoRequireModule = null;
+			
+			
+			// Load a nb-project.dl if given
+			Optional<Path> optAutoPath = FileObjectHelper.resolveAutoRequireDl(Path.of(moduleId));
+
+			if (optAutoPath.isPresent()) {
+				autoRequireModule = core.parse(optAutoPath.orElseThrow().toString());
+			}
+
+			final DLModule module = core.parse(moduleId, content);
+
+			if (autoRequireModule != null) {
+				module.addChild(autoRequireModule);
+			}
+
+			return module;
+
+		} finally {
+			log.stopDebug("FileObjectHelper.parseModule");
+		}
 	}
 
 	/**

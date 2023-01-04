@@ -41,14 +41,16 @@ public abstract class AbstractDLParsingHint implements Badging
 	protected final String description;
 	protected final int startPosition;
 	protected final int endPosition;
+	protected final int line;
+	protected final int positionInLine;
 	protected final Object[] parameters;
 
-	public AbstractDLParsingHint(FileObject fileObject, String display, String description, int startPosition, int endPosition)
+	public AbstractDLParsingHint(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine)
 	{
-		this(fileObject, display, description, startPosition, endPosition, null);
+		this(fileObject, display, description, startPosition, endPosition, line, positionInLine, null);
 	}
 
-	public AbstractDLParsingHint(FileObject fileObject, String display, String description, int startPosition, int endPosition, Object[] parameters)
+	public AbstractDLParsingHint(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine, Object[] parameters)
 	{
 		assert fileObject != null;
 
@@ -58,6 +60,8 @@ public abstract class AbstractDLParsingHint implements Badging
 		this.startPosition = startPosition;
 		this.endPosition = endPosition;
 		this.parameters = parameters;
+		this.line = line;
+		this.positionInLine = positionInLine;
 	}
 
 	public Severity getHintSeverity()
@@ -126,5 +130,15 @@ public abstract class AbstractDLParsingHint implements Badging
 	public boolean showExplorerBadge()
 	{
 		return false;
+	}
+
+	public int getLine()
+	{
+		return line;
+	}
+
+	public int getPositionInLine()
+	{
+		return positionInLine;
 	}
 }

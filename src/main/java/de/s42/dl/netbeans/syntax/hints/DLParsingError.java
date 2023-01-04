@@ -35,14 +35,14 @@ import org.openide.filesystems.FileObject;
 public class DLParsingError extends AbstractDLParsingHint
 {
 
-	public DLParsingError(FileObject fileObject, String display, String description, int startPosition, int endPosition)
+	public DLParsingError(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine)
 	{
-		this(fileObject, display, description, startPosition, endPosition, null);
+		this(fileObject, display, description, startPosition, endPosition, line, positionInLine, null);
 	}
 
-	public DLParsingError(FileObject fileObject, String display, String description, int startPosition, int endPosition, Object[] parameters)
+	public DLParsingError(FileObject fileObject, String display, String description, int startPosition, int endPosition, int line, int positionInLine, Object[] parameters)
 	{
-		super(fileObject, display, description, startPosition, endPosition, parameters);
+		super(fileObject, display, description, startPosition, endPosition, line, positionInLine, parameters);
 	}
 
 	@Override

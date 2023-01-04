@@ -25,14 +25,10 @@
 //</editor-fold>
 package de.s42.dl.netbeans.navigator;
 
-import de.s42.dl.DLModule;
-import de.s42.dl.core.BaseDLCore;
-import de.s42.dl.core.DefaultCore;
-import de.s42.dl.exceptions.DLException;
-import de.s42.dl.netbeans.DLDataObject;
-import de.s42.dl.netbeans.navigator.nodes.ErrorNode;
+import de.s42.dl.netbeans.navigator.nodes.ResultNode;
 import de.s42.dl.netbeans.navigator.nodes.ModuleNode;
 import static de.s42.dl.netbeans.navigator.nodes.WaitNode.getWaitNode;
+import de.s42.dl.netbeans.syntax.DLParserResult;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
 import java.awt.BorderLayout;
@@ -40,7 +36,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.view.BeanTreeView;
-import org.openide.util.RequestProcessor;
 
 /**
  * See
@@ -53,10 +48,8 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 
 	private final static Logger log = LogManager.getLogger(DLNNavigatorPanelComponent.class.getName());
 
-	protected DLDataObject dataObject;
 	protected final ExplorerManager manager = new ExplorerManager();
 	protected MyBeanTreeView elementView;
-	private static final RequestProcessor WORKER = new RequestProcessor(DLNNavigatorPanelComponent.class.getName());
 
 	public DLNNavigatorPanelComponent()
 	{
@@ -72,63 +65,25 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 		manager.setRootContext(getWaitNode());
 	}
 
-	public void setNewContent(DLDataObject dataObject)
+	public void setParserResult(DLParserResult result)
 	{
-		//log.debug("setNewContent");
+		assert result != null;
 
-		this.dataObject = dataObject;
+		if (result.getModule() != null) {
+			ModuleNode root = new ModuleNode(result.getModule());
 
-		if (this.dataObject != null) {
-			showContentNode();
+			// Update inside UI thread
+			SwingUtilities.invokeLater(() -> {
+				elementView.setRootVisible(true);
+				manager.setRootContext(root);
+			});
 		} else {
-			showWaitNode();
+			//log.error(ex.getMessage());
+			SwingUtilities.invokeLater(() -> {
+				elementView.setRootVisible(true);
+				manager.setRootContext(new ResultNode(result));
+			});
 		}
-	}
-
-	public void showContentNode()
-	{
-		showWaitNode();
-
-		// Update the navigator async
-		WORKER.post(() -> {
-
-			try {
-				// Parse the DL and create module as root
-				log.start("DLNNavigatorPanelComponent.showContentNode");
-				// @todo Load as little as possible to make sure modules can have a plain core
-				BaseDLCore core = new BaseDLCore(true);
-				DefaultCore.loadResolvers(core);
-				DefaultCore.loadAnnotations(core);
-				DefaultCore.loadPragmas(core);
-				DefaultCore.loadTypes(core);
-				DefaultCore.loadExports(core);
-				final DLModule module = core.parse(dataObject.getPrimaryFile().getPath());
-				log.stopDebug("DLNNavigatorPanelComponent.showContentNode");
-
-				final ModuleNode root = new ModuleNode(module);
-
-				// Update inside UI thread
-				SwingUtilities.invokeLater(() -> {
-					elementView.setRootVisible(true);
-					manager.setRootContext(root);
-				});
-			} catch (DLException | RuntimeException ex) {
-
-				showErrorNode(ex);
-				log.stopTrace("DLNNavigatorPanelComponent.showContentNode");
-			}
-		});
-	}
-
-	public void showErrorNode(Exception ex)
-	{
-		assert ex != null;
-
-		//log.error(ex.getMessage());
-		SwingUtilities.invokeLater(() -> {
-			elementView.setRootVisible(true);
-			manager.setRootContext(new ErrorNode(ex));
-		});
 	}
 
 	public void showWaitNode()
@@ -162,10 +117,5 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 		{
 			tree.setScrollsOnExpand(scroll);
 		}
-	}
-
-	public DLDataObject getDataObject()
-	{
-		return dataObject;
 	}
 }
