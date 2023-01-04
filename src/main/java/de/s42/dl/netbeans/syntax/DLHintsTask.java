@@ -66,13 +66,19 @@ public class DLHintsTask extends ParserResultTask<DLParserResult>
 		List<ErrorDescription> hints = new ArrayList<>();
 
 		for (AbstractDLParsingHint hint : result.getDiagnostics()) {
+			
+			// Check if positions are valid
+			if (hint.getEndPosition() < hint.getStartPosition()) {
+				log.warn("Invalid hint positions for hint", hint.getDescription(), hint.getStartPosition(), hint.getEndPosition());
+			}
+			
 			hints.add(ErrorDescriptionFactory.createErrorDescription(
 				hint.getHintSeverity(),
 				hint.getDescription(),
 				file,
 				hint.getStartPosition(),
-				hint.getEndPosition())
-			);
+				Math.max(hint.getStartPosition(), hint.getEndPosition())
+			));			
 		}
 
 		HintsController.setErrors(document, MIME_TYPE + "-hints", hints);

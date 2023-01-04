@@ -109,6 +109,12 @@ public class DLSemanticParser extends DLParserBaseListener
 			return;
 		}
 
+		String enumName = ctx.enumName().getText();
+
+		if (enumName == null || enumName.isBlank()) {
+			return;
+		}
+
 		List<String> values = new ArrayList<>();
 		if (ctx.enumBody() != null && ctx.enumBody().enumValueDefinition() != null) {
 			for (EnumValueDefinitionContext evCtx : ctx.enumBody().enumValueDefinition()) {
@@ -135,14 +141,21 @@ public class DLSemanticParser extends DLParserBaseListener
 			return;
 		}
 
+		String typeName = ctx.typeDefinitionName().getText();
+
+		if (typeName == null || typeName.isBlank()) {
+			return;
+		}
+
 		Type type = addTypeDefinition(ctx.typeDefinitionName(), true, null);
 
 		// Ensure all parent types are defined and valid
 		if (ctx.parentTypeName() != null) {
+
 			for (ParentTypeNameContext parentCtx : ctx.parentTypeName()) {
 
 				// Check if a parent is
-				if (parentCtx.getText().equals(ctx.typeDefinitionName().getText())) {
+				if (parentCtx.getText().equals(typeName)) {
 					parserResult.addError("Parent of type can not be the type itself", parentCtx);
 				}
 
@@ -182,8 +195,16 @@ public class DLSemanticParser extends DLParserBaseListener
 	{
 		assert ctx != null;
 
+		String requireModuleId = DLHrfParsing.getRequireModuleId(ctx.requireModuleId()).orElse(null);
+
+		// Error: Type must be defined in this context
+		if (requireModuleId == null) {
+			parserResult.addError("Required module is empty", ctx);
+			return;
+		}
+
 		// Retrieve the module id and require
-		requireModule(DLHrfParsing.getRequireModuleId(ctx.requireModuleId()), ctx);
+		requireModule(requireModuleId, ctx);
 	}
 
 	protected void validateTypeNameContext(ParserRuleContext ctx)
@@ -192,7 +213,7 @@ public class DLSemanticParser extends DLParserBaseListener
 
 		String typeName = ctx.getText();
 
-		// Error: Type must be defined in this context
+		// Warning: Type must be defined in this context
 		if (!cacheNode.hasType(typeName, ctx.getStart().getStartIndex(), true)) {
 			parserResult.addWarning("Type " + typeName + " is not defined", ctx);
 		}
@@ -203,6 +224,11 @@ public class DLSemanticParser extends DLParserBaseListener
 		assert context != null;
 
 		String typeName = context.getText();
+
+		if (context.start.getStartIndex() > context.stop.getStopIndex()) {
+			parserResult.addError("Type name is invalid - " + typeName, context.stop);
+			return null;
+		}
 
 		// Error: Dont allow double definitions
 		if (cacheNode.hasType(typeName, context.getStart().getStartIndex(), true)) {
@@ -231,6 +257,11 @@ public class DLSemanticParser extends DLParserBaseListener
 		assert context != null;
 
 		String enumName = context.getText();
+
+		if (context.start.getStartIndex() > context.stop.getStopIndex()) {
+			parserResult.addError("Enum name is invalid - " + enumName, context.stop);
+			return null;
+		}
 
 		// Error: Dont allow double definitions
 		if (cacheNode.hasType(enumName, context.getStart().getStartIndex(), true)) {
