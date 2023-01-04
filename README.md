@@ -37,6 +37,7 @@ Benjamin
 
 ## Screenshots
 
-![Screenshot Netbeans](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-01-dlnetbeans.png)
+![Screenshot Netbeans](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-04-02-dlnb.png)
+![Screenshot Netbeans Errors](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-04-01-dlnb.png)
 ![Screenshot Options Coloring](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-02-dlnetbeans.png)
 ![Screenshot Options Indenting](https://github.com/studio42gmbh/dlnetbeans/blob/main/resources/screenshots/2023-01-01-03-dlnetbeans.png)
