@@ -136,7 +136,7 @@ public class DLFoldManager implements FoldManager
 				// Parse first line of multiline comment out as text for fold
 				String description;
 				int nlIndex = commentText.indexOf('\n');
-				if (nlIndex > -1) {
+				if (nlIndex > 3) {
 					description = commentText.substring(3, nlIndex).trim();
 				} else {
 					description = DLFoldType.MultiLineComment.type.getTemplate().getDescription();
