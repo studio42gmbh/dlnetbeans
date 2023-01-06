@@ -6,18 +6,38 @@
 
 require "test2.project.dl";
 
-type Project {
+/**
+ * Defines a simple project
+ */
+final dynamic type Project {
 	String		display @required;
 	String		description @required;
 	UUID		id @required;
 }
 
-Folder local {
-	String t : 22;
-	
-	Folder src {
-		String t : 5;
-	}     
+Project project {
+	display : "Project";
+	description : "";
+	id : "e026f997-4410-403b-a061-286692fdc8ca";
+	myProp : 5;
 }
 
-//DLNBProject pp {}
+Folder local {
+	
+	
+	String display : "Local";
+	
+	Folder src {
+		
+		String display : "Sources";
+	}
+	
+	Folder test {
+		
+		String display : "Test";
+	}
+}
+
+type Long42 @range(0, 42) extends Long;
+
+Long42 i : 5;

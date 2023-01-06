@@ -1,16 +1,14 @@
 
 type File {
-	String t;
+	String display;
 }
 
 type Folder contains Folder, File {
-	String t;
+	String display @required;
 }
 
-String t;
-
 Folder rootFolder @export {
-	//String x : "";
+	display : "Root";
 }
 
 //String t;

@@ -114,6 +114,7 @@ public class DLLexer implements Lexer<DLTokenId>
 			case KEYWORD_PRAGMA:
 			case KEYWORD_REQUIRE:
 			case KEYWORD_TYPE:
+			case KEYWORD_DYNAMIC:
 			case BOOLEAN_LITERAL:
 				return token(KEYWORD);
 			case RESERVED_KEYWORD:
