@@ -85,7 +85,7 @@ public class DLIndenter
 		assert endIndex >= 0;
 		assert endIndex >= startIndex;
 
-		log.debug("reindentRegion", startIndex, endIndex);
+		//log.debug("reindentRegion", startIndex, endIndex);
 
 		BaseDocument document = getDocument();
 		String text = FileObjectHelper.getText(document);

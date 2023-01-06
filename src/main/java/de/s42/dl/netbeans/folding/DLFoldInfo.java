@@ -2,7 +2,7 @@
 /*
  * The MIT License
  * 
- * Copyright 2022 Studio 42 GmbH ( https://www.s42m.de ).
+ * Copyright 2023 Studio 42 GmbH ( https://www.s42m.de ).
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,69 +25,66 @@
 //</editor-fold>
 package de.s42.dl.netbeans.folding;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import org.netbeans.api.editor.fold.FoldTemplate;
-import org.netbeans.api.editor.fold.FoldType;
+import java.util.Objects;
+import org.netbeans.spi.editor.fold.FoldInfo;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public enum DLFoldType
+public class DLFoldInfo
 {
-	Scope(FoldType.create(
-		"scope",
-		"Scope",
-		new FoldTemplate(
-			1,
-			1,
-			"{...}"
-		)
-	)),
-	SingleCommentRegion(FoldType.create(
-		"commentRegion",
-		"CommentRegion",
-		new FoldTemplate(
-			1,
-			1,
-			"//..."
-		)
-	)),
-	MultiLineComment(FoldType.create(
-		"comment",
-		"Comment",
-		new FoldTemplate(
-			2,
-			2,
-			"/*...*/"
-		)
-	));
 
-	public final FoldType type;
+	protected final FoldInfo foldInfo;
 
-	public final static List<FoldType> TYPES;
+	public DLFoldInfo(FoldInfo foldInfo)
+	{
+		assert foldInfo != null;
 
-	static {
+		this.foldInfo = foldInfo;		
+	}
 
-		// Init TYPES list iterating the given DLFoldTypes
-		List<FoldType> types = new ArrayList<>();
-		for (int i = 0; i < DLFoldType.values().length; ++i) {
-			types.add(DLFoldType.values()[i].type);
+	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
+	public FoldInfo getFoldInfo()
+	{
+		return foldInfo;
+	}
+	//</editor-fold>
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 7;
+		hash = 41 * hash + Objects.hashCode(foldInfo.getType());
+		hash = 41 * hash + foldInfo.getStart();
+		hash = 41 * hash + foldInfo.getEnd();
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj) {
+			return true;
 		}
-		TYPES = Collections.unmodifiableList(types);
-	}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final DLFoldInfo other = (DLFoldInfo) obj;
 
-	private DLFoldType(FoldType type)
-	{
-		assert type != null;
+		if (!Objects.equals(this.foldInfo.getType(), other.foldInfo.getType())) {
+			return false;
+		}
+		if (this.foldInfo.getStart() != other.foldInfo.getStart()) {
+			return false;
+		}
+		if (this.foldInfo.getEnd() != other.foldInfo.getEnd()) {
+			return false;
+		}
 
-		this.type = type;
-	}
-
-	public static List<FoldType> getFoldTypes()
-	{
-		return TYPES;
+		return true;
 	}
 }
