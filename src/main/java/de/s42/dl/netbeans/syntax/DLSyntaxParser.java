@@ -213,6 +213,8 @@ public class DLSyntaxParser extends Parser
 	{
 		assert moduleId != null;
 		assert content != null;
+		
+		log.start("analyzeStatic");
 
 		try {
 
@@ -227,12 +229,17 @@ public class DLSyntaxParser extends Parser
 
 			createErrorHintFromException(ex);
 		}
+		
+		log.stopDebug("analyzeStatic");
+		
 	}
 
 	protected void analyzeDynamic(String moduleId, String content)
 	{
 		assert moduleId != null;
 		assert content != null;
+
+		log.start("analyzeDynamic");
 
 		try {
 
@@ -241,6 +248,8 @@ public class DLSyntaxParser extends Parser
 
 			createErrorHintFromException(ex);
 		}
+		
+		log.stopDebug("analyzeDynamic");
 	}
 
 	@Override
