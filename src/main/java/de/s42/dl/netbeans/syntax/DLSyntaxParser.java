@@ -27,9 +27,9 @@ package de.s42.dl.netbeans.syntax;
 
 import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.core.DefaultCore;
-import de.s42.dl.core.resolvers.FileCoreResolver;
 import de.s42.dl.exceptions.DLException;
 import de.s42.dl.exceptions.DLParserException;
+import de.s42.dl.exceptions.InvalidValue;
 import de.s42.dl.exceptions.ParserException;
 import de.s42.dl.netbeans.semantic.DLSemanticParser;
 import de.s42.dl.netbeans.syntax.hints.DLParsingError;
@@ -213,25 +213,25 @@ public class DLSyntaxParser extends Parser
 	{
 		assert moduleId != null;
 		assert content != null;
-		
+
 		log.start("analyzeStatic");
 
 		try {
 
 			BaseDLCore core = new BaseDLCore(true);
 			DefaultCore.loadResolvers(core);
-			FileCoreResolver.setLocalPathInCore(core, Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
+			core.getPathResolver().addResolveDirectory(Path.of(parserResult.getSnapshot().getSource().getFileObject().getPath()).getParent());
 
 			parseContent(parserResult, moduleId, content, core);
 
 		} // Special handling for reserved keyword - this might to be changed in DL parsing as this induces issues -> Should add errors but not throw
-		catch (RuntimeException ex) {
+		catch (InvalidValue | RuntimeException ex) {
 
 			createErrorHintFromException(ex);
 		}
-		
+
 		log.stopDebug("analyzeStatic");
-		
+
 	}
 
 	protected void analyzeDynamic(String moduleId, String content)
@@ -248,7 +248,7 @@ public class DLSyntaxParser extends Parser
 
 			createErrorHintFromException(ex);
 		}
-		
+
 		log.stopDebug("analyzeDynamic");
 	}
 
