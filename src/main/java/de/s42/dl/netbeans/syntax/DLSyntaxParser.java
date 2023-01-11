@@ -191,7 +191,7 @@ public class DLSyntaxParser extends Parser
 			));
 		} else {
 
-			//log.error(ex.getMessage());
+			log.error(ex);
 			int startPosition = 0;
 			int endPosition = 0;
 			int line = 0;

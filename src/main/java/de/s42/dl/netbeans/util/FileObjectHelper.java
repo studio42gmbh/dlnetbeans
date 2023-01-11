@@ -123,45 +123,34 @@ public final class FileObjectHelper
 		return new BufferedTokenStream(lexer);
 	}
 
-	/**
-	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
-	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
-	 *
-	 * @param fileObject
-	 *
-	 * @return
-	 */
-	public static Optional<Path> resolveAutoRequireDl(FileObject fileObject)
-	{
-		assert fileObject != null;
-
-		return resolveAutoRequireDl(Path.of(fileObject.getPath()));
-	}
-
 	public static DLModule parseModule(String moduleId) throws DLException
 	{
+		assert moduleId != null;
+		
 		return parseModule(moduleId, null);
 	}
 
 	public static DLModule parseModule(String moduleId, String content) throws DLException
 	{
+		assert moduleId != null;
+		
+		log.debug("parseModule", moduleId);
+		
 		try {
 			// Parse the DL and create module as root
 			log.start("FileObjectHelper.parseModule");
 			// @todo Load as little as possible to make sure modules can have a plain core
-			BaseDLCore core = new BaseDLCore(true);
+			final BaseDLCore core = new BaseDLCore(true);
 			DefaultCore.loadResolvers(core);
-			core.getPathResolver().addResolveDirectory(Path.of(moduleId).getParent());
 			DefaultCore.loadAnnotations(core);
 			DefaultCore.loadPragmas(core);
 			DefaultCore.loadTypes(core);
 			DefaultCore.loadExports(core);
+			core.getPathResolver().addResolveDirectory(Path.of(moduleId).getParent());
 
+			// Load a auto require dl if given
 			DLModule autoRequireModule = null;
-
-			// Load a nb-project.dl if given
 			Optional<Path> optAutoPath = FileObjectHelper.resolveAutoRequireDl(Path.of(moduleId));
-
 			if (optAutoPath.isPresent()) {
 				autoRequireModule = core.parse(optAutoPath.orElseThrow().toString());
 			}
@@ -183,6 +172,21 @@ public final class FileObjectHelper
 	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
 	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
 	 *
+	 * @param fileObject
+	 *
+	 * @return
+	 */
+	public static Optional<Path> resolveAutoRequireDl(FileObject fileObject)
+	{
+		assert fileObject != null;
+
+		return resolveAutoRequireDl(Path.of(fileObject.getPath()));
+	}
+
+	/**
+	 * Tries to resolve a fitting nb-project.dl for a given path. It traverses from this directory up until root.
+	 * The first macthed is returned. it does not return itself if the path denotes an auto require already.
+	 *
 	 * @param path
 	 *
 	 * @return
@@ -190,6 +194,14 @@ public final class FileObjectHelper
 	public static Optional<Path> resolveAutoRequireDl(Path path)
 	{
 		assert path != null;
+		
+		return resolveTraversedRequiredDl(path, AUTO_REQUIRE_DL_NAME);
+	}
+	
+	public static Optional<Path> resolveTraversedRequiredDl(Path path, String requirableFileName)
+	{
+		assert path != null;
+		assert requirableFileName != null;
 
 		try {
 
@@ -199,7 +211,7 @@ public final class FileObjectHelper
 			if (Files.isRegularFile(currentPath)) {
 
 				// If the file itself is a auto require file -> return empty to prevent nasty loops in client code
-				if (currentPath.endsWith(AUTO_REQUIRE_DL_NAME)) {
+				if (currentPath.endsWith(requirableFileName)) {
 					return Optional.empty();
 				}
 
@@ -208,7 +220,7 @@ public final class FileObjectHelper
 
 			// Traverse up the directories and search for first matching auto require
 			for (int i = 0; i < MAX_RESOLVE_DEPTH && currentPath != null && Files.isDirectory(currentPath); ++i) {
-				Path autoRequireDL = currentPath.resolve(AUTO_REQUIRE_DL_NAME);
+				Path autoRequireDL = currentPath.resolve(requirableFileName);
 				if (Files.isRegularFile(autoRequireDL)) {
 					return Optional.of(autoRequireDL);
 				}
@@ -230,6 +242,8 @@ public final class FileObjectHelper
 	 */
 	public static String getText(BaseDocument document)
 	{
+		assert document != null;
+		
 		try {
 			document.readLock();
 			String text = document.getText(
@@ -281,6 +295,8 @@ public final class FileObjectHelper
 	 */
 	public static void openEditorForPathInLine(Path path, int line)
 	{
+		assert path != null;
+		
 		SwingUtilities.invokeLater(() -> {
 			try {
 				FileObject gotoFileObject = FileUtil.toFileObject(path.toFile());

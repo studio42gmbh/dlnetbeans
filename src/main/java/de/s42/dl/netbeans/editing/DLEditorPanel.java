@@ -25,6 +25,10 @@
 //</editor-fold>
 package de.s42.dl.netbeans.editing;
 
+import de.s42.dl.DLModule;
+import de.s42.dl.core.BaseDLCore;
+import de.s42.dl.core.DefaultCore;
+import de.s42.dl.exceptions.DLException;
 import de.s42.dl.netbeans.DLDataObject;
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -49,6 +53,14 @@ import javax.swing.Box;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
+import de.s42.dl.netbeans.util.FileObjectHelper;
+import de.s42.dl.ui.visual.VisualDLEditor;
+import java.nio.file.Path;
+import java.util.Optional;
+import javax.swing.JComboBox;
+import javax.swing.text.Document;
+import org.netbeans.modules.parsing.api.Source;
+import org.openide.filesystems.FileObject;
 
 @MultiViewElement.Registration(
 	displayName = "#LBL_DL_VISUAL",
@@ -58,7 +70,7 @@ import org.netbeans.api.editor.mimelookup.MimeLookup;
 	preferredID = "DLVisual",
 	position = 2000
 )
-@Messages("LBL_DL_VISUAL=Edit")
+@Messages("LBL_DL_VISUAL=Visual")
 public final class DLEditorPanel extends JPanel implements MultiViewElement
 {
 
@@ -73,36 +85,53 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 		dataObject = lkp.lookup(DLDataObject.class);
 
 		assert dataObject != null;
-
 		initComponents();
 		initEditor();
+	}
+
+	private static void loadVisualDLEditors(FileObject fileObject, JComboBox<DLEditor> selection) throws DLException
+	{
+		assert fileObject != null;
+		assert selection != null;
+
+		// Add all editors which are defined in an auto resolved visual-require.dl
+		Path fileObjectPath = Path.of(fileObject.getPath());
+
+		// Resolve optional "visual-require.dl"
+		Optional<Path> optVisualRequire = FileObjectHelper.resolveTraversedRequiredDl(fileObjectPath, "visual-require.dl");
+		if (optVisualRequire.isPresent()) {
+
+			// Parse the visual require
+			BaseDLCore core = new BaseDLCore(true);
+			DefaultCore.loadResolvers(core);
+			DefaultCore.loadAnnotations(core);
+			DefaultCore.loadPragmas(core);
+			DefaultCore.loadTypes(core);
+			DefaultCore.loadExports(core);
+			core.getPathResolver().addResolveDirectory(fileObjectPath.getParent());
+			DLModule visualRequireModule = core.parse(optVisualRequire.orElseThrow().toString());
+
+			// If visual require contains at least one VisuaDLEditor instance
+			List<VisualDLEditor> visualEditors = visualRequireModule.getChildrenAsJavaType(VisualDLEditor.class);
+			if (!visualEditors.isEmpty()) {
+
+				// Resolve the document and parse the dl file pointed by for this main editor
+				Document document = Source.create(fileObject).getDocument(true);
+				DLModule module = core.parse(fileObjectPath.toString());
+
+				// Construct wrapper to embed the VisualDLEditors
+				for (VisualDLEditor visualEditor : visualEditors) {
+					if (visualEditor.canEdit(module)) {
+						selection.addItem(new WrapVisualDLEditor(module, visualEditor, document));
+					}
+				}
+			}
+		}
 	}
 
 	private void initEditor()
 	{
 		log.debug("initEditor");
-
-		List<DLEditor> editors = new ArrayList<>(MimeLookup.getLookup(DL_MIME_TYPE).lookupAll(DLEditor.class));
-
-		selectEditor.removeAllItems();
-
-		// Add all editors that could edit this DL
-		for (DLEditor editor : editors) {
-			if (editor.canEdit(dataObject)) {
-				selectEditor.addItem(editor);
-			}
-		}
-
-		// If no editor found -> Disable dropdown
-		if (selectEditor.getItemCount() == 0) {
-			selectEditor.setEnabled(false);
-		} else {
-			selectEditor.setSelectedIndex(0);
-
-			if (selectEditor.getItemCount() == 1) {
-				selectEditor.setEnabled(false);
-			}
-		}
 
 		// Setup toolbar - filler code is a bit specific
 		// see also https://github.com/apache/netbeans/blob/4ae01ea70f4530443343beee3292e880a74099bd/profiler/lib.profiler.ui/src/org/netbeans/lib/profiler/ui/components/ProfilerToolbar.java
@@ -113,6 +142,46 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 		Dimension maxDim = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		toolbar.add(new Box.Filler(minDim, minDim, maxDim));
 		toolbar.repaint();
+		
+		updateEditor();
+	}
+
+	private void updateEditor()
+	{
+		log.debug("updateEditor");
+		log.start("updateEditor");
+
+		selectEditor.removeAllItems();
+		
+		try {
+
+			List<DLEditor> editors = new ArrayList<>(MimeLookup.getLookup(DL_MIME_TYPE).lookupAll(DLEditor.class));
+
+
+			// Add all editors that could edit this DL
+			for (DLEditor editor : editors) {
+				if (editor.canEdit(dataObject)) {
+					selectEditor.addItem(editor);
+				}
+			}
+
+			loadVisualDLEditors(dataObject.getPrimaryFile(), selectEditor);
+
+			// If no editor found -> Disable dropdown
+			if (selectEditor.getItemCount() == 0) {
+				selectEditor.setEnabled(false);
+			} else {
+				selectEditor.setSelectedIndex(0);
+
+				if (selectEditor.getItemCount() == 1) {
+					selectEditor.setEnabled(false);
+				}
+			}
+		} catch (DLException ex) {
+			throw new RuntimeException("Error loading editor - " + ex.getMessage(), ex);
+		} finally {
+			log.stopDebug("updateEditor");
+		}
 	}
 
 	protected ListCellRenderer createSelectEditorRenderer()
@@ -196,6 +265,7 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 
 			// Insert the new editor within the swing thread and update
 			SwingUtilities.invokeLater(() -> {
+				callback.updateTitle(editor.getDisplay());
 				editorContainer.removeAll();
 				editorContainer.setLayout(new BorderLayout());
 				editorContainer.add(editPanel, BorderLayout.CENTER);
@@ -237,31 +307,39 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 	@Override
 	public void componentOpened()
 	{
+		log.debug("componentOpened");
 	}
 
 	@Override
 	public void componentClosed()
 	{
+		log.debug("componentClosed");
 	}
 
 	@Override
 	public void componentShowing()
 	{
+		log.debug("componentShowing");
+		updateEditor();
 	}
 
 	@Override
 	public void componentHidden()
 	{
+		log.debug("componentHidden");
+		editorContainer.removeAll();
 	}
 
 	@Override
 	public void componentActivated()
 	{
+		log.debug("componentActivated");
 	}
 
 	@Override
 	public void componentDeactivated()
 	{
+		log.debug("componentDeactivated");
 	}
 
 	@Override
