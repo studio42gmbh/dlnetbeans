@@ -80,10 +80,20 @@
 			<artifactId>dlui</artifactId>
 			<version>0.1.0</version>
 			<type>jar</type>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.netbeans.api</groupId>
 			<artifactId>org-netbeans-modules-projectapi</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-modules-projectuiapi</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-modules-projectuiapi-base</artifactId>
 			<version>RELEASE160</version>
 		</dependency>
 		<dependency>

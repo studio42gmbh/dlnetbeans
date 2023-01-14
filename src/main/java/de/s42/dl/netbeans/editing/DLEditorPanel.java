@@ -58,7 +58,7 @@ import de.s42.dl.ui.visual.VisualDLEditor;
 import java.nio.file.Path;
 import java.util.Optional;
 import javax.swing.JComboBox;
-import javax.swing.text.Document;
+import org.netbeans.editor.BaseDocument;
 import org.netbeans.modules.parsing.api.Source;
 import org.openide.filesystems.FileObject;
 
@@ -116,13 +116,16 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 			if (!visualEditors.isEmpty()) {
 
 				// Resolve the document and parse the dl file pointed by for this main editor
-				Document document = Source.create(fileObject).getDocument(true);
+				BaseDocument document = (BaseDocument) Source.create(fileObject).getDocument(true);
 				DLModule module = core.parse(fileObjectPath.toString());
 
 				// Construct wrapper to embed the VisualDLEditors
 				for (VisualDLEditor visualEditor : visualEditors) {
-					if (visualEditor.canEdit(module)) {
-						selection.addItem(new WrapVisualDLEditor(module, visualEditor, document));
+
+					WrapVisualDLEditor wrapEditor = new WrapVisualDLEditor(module, visualEditor, document);
+
+					if (visualEditor.canEdit(wrapEditor)) {
+						selection.addItem(wrapEditor);
 					}
 				}
 			}
@@ -142,7 +145,7 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 		Dimension maxDim = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		toolbar.add(new Box.Filler(minDim, minDim, maxDim));
 		toolbar.repaint();
-		
+
 		updateEditor();
 	}
 
@@ -152,11 +155,10 @@ public final class DLEditorPanel extends JPanel implements MultiViewElement
 		log.start("updateEditor");
 
 		selectEditor.removeAllItems();
-		
+
 		try {
 
 			List<DLEditor> editors = new ArrayList<>(MimeLookup.getLookup(DL_MIME_TYPE).lookupAll(DLEditor.class));
-
 
 			// Add all editors that could edit this DL
 			for (DLEditor editor : editors) {

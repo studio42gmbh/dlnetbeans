@@ -126,16 +126,16 @@ public final class FileObjectHelper
 	public static DLModule parseModule(String moduleId) throws DLException
 	{
 		assert moduleId != null;
-		
+
 		return parseModule(moduleId, null);
 	}
 
 	public static DLModule parseModule(String moduleId, String content) throws DLException
 	{
 		assert moduleId != null;
-		
+
 		log.debug("parseModule", moduleId);
-		
+
 		try {
 			// Parse the DL and create module as root
 			log.start("FileObjectHelper.parseModule");
@@ -194,10 +194,10 @@ public final class FileObjectHelper
 	public static Optional<Path> resolveAutoRequireDl(Path path)
 	{
 		assert path != null;
-		
+
 		return resolveTraversedRequiredDl(path, AUTO_REQUIRE_DL_NAME);
 	}
-	
+
 	public static Optional<Path> resolveTraversedRequiredDl(Path path, String requirableFileName)
 	{
 		assert path != null;
@@ -243,7 +243,7 @@ public final class FileObjectHelper
 	public static String getText(BaseDocument document)
 	{
 		assert document != null;
-		
+
 		try {
 			document.readLock();
 			String text = document.getText(
@@ -296,7 +296,7 @@ public final class FileObjectHelper
 	public static void openEditorForPathInLine(Path path, int line)
 	{
 		assert path != null;
-		
+
 		SwingUtilities.invokeLater(() -> {
 			try {
 				FileObject gotoFileObject = FileUtil.toFileObject(path.toFile());

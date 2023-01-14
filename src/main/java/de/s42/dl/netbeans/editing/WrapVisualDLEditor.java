@@ -25,29 +25,35 @@
 //</editor-fold>
 package de.s42.dl.netbeans.editing;
 
+import de.s42.dl.DLCore;
 import de.s42.dl.DLModule;
 import de.s42.dl.netbeans.editing.api.DLEditor;
+import de.s42.dl.netbeans.util.FileObjectHelper;
+import de.s42.dl.ui.bindings.AbstractBinding;
 import de.s42.dl.ui.visual.VisualDLEditor;
+import de.s42.dl.ui.visual.VisualDLModuleBinding;
+import de.s42.dl.util.DLHelper;
 import de.s42.log.LogManager;
 import de.s42.log.Logger;
+import java.util.Optional;
 import javax.swing.JPanel;
-import javax.swing.text.Document;
+import org.netbeans.editor.BaseDocument;
 import org.openide.loaders.DataObject;
 
 /**
  *
  * @author Benjamin Schiller
  */
-public class WrapVisualDLEditor implements DLEditor
+public class WrapVisualDLEditor extends AbstractBinding<WrapVisualDLEditor, DLModule> implements DLEditor, VisualDLModuleBinding<WrapVisualDLEditor>
 {
 
 	private final static Logger log = LogManager.getLogger(WrapVisualDLEditor.class.getName());
 
-	protected final DLModule module;
+	protected DLModule module;
 	protected final VisualDLEditor visualEditor;
-	protected final Document document;
+	protected final BaseDocument document;
 
-	public WrapVisualDLEditor(DLModule module, VisualDLEditor visualEditor, Document document)
+	public WrapVisualDLEditor(DLModule module, VisualDLEditor visualEditor, BaseDocument document)
 	{
 		assert module != null;
 		assert visualEditor != null;
@@ -61,7 +67,7 @@ public class WrapVisualDLEditor implements DLEditor
 	@Override
 	public boolean canEdit(DataObject dataObject)
 	{
-		return visualEditor.canEdit(module);
+		return visualEditor.canEdit(this);
 	}
 
 	@Override
@@ -73,6 +79,58 @@ public class WrapVisualDLEditor implements DLEditor
 	@Override
 	public JPanel getEditorPanel(DataObject dataObject)
 	{
-		return visualEditor.createEditor(module, document);
+		return visualEditor.createEditor(this);
+	}
+
+	@Override
+	public WrapVisualDLEditor getObject()
+	{
+		return this;
+	}
+
+	@Override
+	public String getName()
+	{
+		return module.getName();
+	}
+
+	@Override
+	public Class<? extends DLModule> getDataType()
+	{
+		return module.getClass();
+	}
+
+	@Override
+	public Optional<DLModule> getValue()
+	{
+		return Optional.of(module);
+	}
+
+	@Override
+	public void setValue(DLModule module)
+	{
+		assert module != null;
+		
+		this.module = module;
+		updatedValue();
+	}
+
+	@Override
+	public void updatedValue()
+	{
+		String newModuleString = DLHelper.toString(module, true);
+		FileObjectHelper.replaceText(document, newModuleString);
+	}
+
+	@Override
+	public Optional<DLCore> getCore()
+	{
+		Optional<DLModule> optModule = getValue();
+
+		if (optModule.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return Optional.of(optModule.orElseThrow().getType().getCore());
 	}
 }

@@ -59,10 +59,12 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 	private void init()
 	{
 		setLayout(new BorderLayout());
-		elementView = createBeanTreeView();
-		elementView.setRootVisible(true);
-		add(elementView, BorderLayout.CENTER);
-		manager.setRootContext(getWaitNode());
+		
+		SwingUtilities.invokeLater(() -> {
+			elementView = createBeanTreeView();
+			add(elementView, BorderLayout.CENTER);		
+			showWaitNode();
+		});
 	}
 
 	public void setParserResult(DLParserResult result)
@@ -74,14 +76,14 @@ public class DLNNavigatorPanelComponent extends JPanel implements ExplorerManage
 
 			// Update inside UI thread
 			SwingUtilities.invokeLater(() -> {
-				elementView.setRootVisible(true);
 				manager.setRootContext(root);
+				elementView.setRootVisible(true);
 			});
 		} else {
 			//log.error(ex.getMessage());
 			SwingUtilities.invokeLater(() -> {
-				elementView.setRootVisible(true);
 				manager.setRootContext(new ResultNode(result));
+				elementView.setRootVisible(true);
 			});
 		}
 	}

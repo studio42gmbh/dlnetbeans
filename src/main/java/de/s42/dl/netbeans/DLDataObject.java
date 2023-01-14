@@ -43,6 +43,8 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
 import static de.s42.dl.netbeans.DLDataObject.DL_MIME_TYPE;
+import de.s42.log.LogManager;
+import de.s42.log.Logger;
 import org.openide.filesystems.MIMEResolver;
 
 @Messages({
@@ -114,6 +116,8 @@ import org.openide.filesystems.MIMEResolver;
 })
 public class DLDataObject extends MultiDataObject
 {
+
+	private final static Logger log = LogManager.getLogger(DLDataObject.class.getName());
 
 	public static final String DL_MIME_TYPE = DLConstants.MIME_TYPE;
 
