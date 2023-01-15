@@ -37,7 +37,6 @@ import java.beans.PropertyChangeListener;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -69,7 +68,7 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 	public final static String QUICK_TOOLS_DL_NAME = "quick-tools.dl";
 
 	protected Path currentQuickToolsDLPath;
-	
+
 	protected FileObject currentFileObject;
 
 	public DLQuickToolsPanel()
@@ -86,7 +85,7 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 	{
 		// This makes sure to be informed about changed selections in the ui
 		TopComponent.getRegistry().addPropertyChangeListener(this);
-		
+
 		// This is a hackish way of determining that some long running task (-> compilation) has finished -> update view
 		// I still did not find out another generic way of determining when a build has been finished ...
 		Controller.getDefault().getModel().addListDataListener(this);
@@ -114,16 +113,15 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 				FileObject fObject = node.getLookup().lookup(FileObject.class);
 
 				if (fObject != null) {
-					
+
 					Path path = Path.of(fObject.getPath());
-					
+
 					if (currentFileObject != null) {
 						currentFileObject.removeFileChangeListener(this);
 					}
-					
+
 					fObject.addFileChangeListener(this);
 					currentFileObject = fObject;
-					
 
 					findAndLoadQuickToolsForPath(path);
 				}
@@ -149,8 +147,8 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 		if (!force && Objects.equals(currentQuickToolsDLPath, newToolsDLPath)) {
 			return;
 		}
-		
-		if (newToolsDLPath  == null) {
+
+		if (newToolsDLPath == null) {
 			updatePanelContent(new JLabel("No quicktools found for this file/folder"));
 			currentQuickToolsDLPath = null;
 			return;
@@ -169,7 +167,7 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 				updatePanelContent((JComponent) comps.get(0).createSwingComponent());
 			}
 		} catch (DLException ex) {
-			updatePanelContent(new JLabel("Error loading quicktools: " + ex.getMessage()));
+			updatePanelContent(new JLabel("Error loading quicktools"));
 		}
 
 		currentQuickToolsDLPath = newToolsDLPath;
@@ -189,7 +187,6 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	//</editor-fold>
-
 	@Override
 	public void intervalAdded(ListDataEvent e)
 	{
@@ -207,7 +204,7 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 	public void contentsChanged(ListDataEvent e)
 	{
 		log.warn("contentsChanged");
-		
+
 		WORKER.schedule(() -> {
 			updateQuickTools(currentQuickToolsDLPath, true);
 		}, 500, TimeUnit.MILLISECONDS);
@@ -229,7 +226,7 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 	public void fileChanged(FileEvent fe)
 	{
 		log.warn("fileChanged");
-		
+
 		WORKER.schedule(() -> {
 			updateQuickTools(currentQuickToolsDLPath, true);
 		}, 500, TimeUnit.MILLISECONDS);
