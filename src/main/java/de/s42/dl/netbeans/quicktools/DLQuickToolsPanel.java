@@ -38,11 +38,19 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import org.netbeans.modules.progress.spi.Controller;
+import org.openide.filesystems.FileAttributeEvent;
+import org.openide.filesystems.FileChangeListener;
+import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileRenameEvent;
 import org.openide.nodes.Node;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.TopComponent;
@@ -51,7 +59,7 @@ import org.openide.windows.TopComponent;
  *
  * @author Benjamin Schiller
  */
-public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
+public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener, ListDataListener, FileChangeListener
 {
 
 	private final static Logger log = LogManager.getLogger(DLQuickToolsPanel.class.getName());
@@ -61,6 +69,8 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
 	public final static String QUICK_TOOLS_DL_NAME = "quick-tools.dl";
 
 	protected Path currentQuickToolsDLPath;
+	
+	protected FileObject currentFileObject;
 
 	public DLQuickToolsPanel()
 	{
@@ -74,17 +84,25 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
 
 	public void init()
 	{
+		// This makes sure to be informed about changed selections in the ui
 		TopComponent.getRegistry().addPropertyChangeListener(this);
+		
+		// This is a hackish way of determining that some long running task (-> compilation) has finished -> update view
+		// I still did not find out another generic way of determining when a build has been finished ...
+		Controller.getDefault().getModel().addListDataListener(this);
 	}
 
 	public void suspend()
 	{
 		TopComponent.getRegistry().removePropertyChangeListener(this);
+		Controller.getDefault().getModel().removeListDataListener(this);
 	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
+		//log.warn(evt.getPropertyName());
+
 		if (evt.getPropertyName().equals("activatedNodes")) {
 
 			Node[] nodes = (Node[]) evt.getNewValue();
@@ -96,8 +114,16 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
 				FileObject fObject = node.getLookup().lookup(FileObject.class);
 
 				if (fObject != null) {
-
+					
 					Path path = Path.of(fObject.getPath());
+					
+					if (currentFileObject != null) {
+						currentFileObject.removeFileChangeListener(this);
+					}
+					
+					fObject.addFileChangeListener(this);
+					currentFileObject = fObject;
+					
 
 					findAndLoadQuickToolsForPath(path);
 				}
@@ -113,54 +139,51 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
 
 			// Retrieve quick-tool.dl
 			Optional<Path> optQuickToolsDLPath = FileObjectHelper.resolveTraversedRequiredDl(path, QUICK_TOOLS_DL_NAME);
-			
+
 			// If a path was found -> Load new quick tools
 			if (optQuickToolsDLPath.isPresent()) {
 
 				Path quickToolsDLPath = optQuickToolsDLPath.orElseThrow();
-				updateQuickTools(quickToolsDLPath);
-			} 
-			// Otherwise display empty info
+				updateQuickTools(quickToolsDLPath, false);
+			} // Otherwise display empty info
 			else {
 				updatePanelContent(new JLabel("No quicktools found for this file/folder"));
 				currentQuickToolsDLPath = null;
 			}
 		});
 	}
-	
-	protected void updateQuickTools(Path newToolsDLPath)
+
+	protected void updateQuickTools(Path newToolsDLPath, boolean force)
 	{
 		assert newToolsDLPath != null;
 
-		if (Objects.equals(currentQuickToolsDLPath, newToolsDLPath)) {
+		if (!force && Objects.equals(currentQuickToolsDLPath, newToolsDLPath)) {
 			return;
 		}
 
 		log.debug("Loading quick tools from", newToolsDLPath);
-		
+
 		try {
 			DLModule module = FileObjectHelper.parseModule(newToolsDLPath);
-			
+
 			List<Component> comps = module.getChildrenAsJavaType(Component.class);
-			
+
 			if (!comps.isEmpty()) {
-				
+
 				// @todo Might want to allow multiple components to be loaded in vertical flow
-				
-				updatePanelContent((JComponent)comps.get(0).createSwingComponent());				
+				updatePanelContent((JComponent) comps.get(0).createSwingComponent());
 			}
 		} catch (DLException ex) {
 			updatePanelContent(new JLabel("Error loading quicktools: " + ex.getMessage()));
 		}
-		
 
 		currentQuickToolsDLPath = newToolsDLPath;
 	}
-	
-	protected void updatePanelContent(JComponent content) 
+
+	protected void updatePanelContent(JComponent content)
 	{
 		assert content != null;
-		
+
 		SwingUtilities.invokeLater(() -> {
 			removeAll();
 			add(content, BorderLayout.CENTER);
@@ -168,8 +191,70 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener
 			getParent().repaint();
 		});
 	}
-	
 
 	// <editor-fold desc="Getters/Setters" defaultstate="collapsed">
 	//</editor-fold>
+
+	@Override
+	public void intervalAdded(ListDataEvent e)
+	{
+		//log.debug("intervalAdded",e);
+	}
+
+	@Override
+	public void intervalRemoved(ListDataEvent e)
+	{
+		//log.debug("intervalRemoved",e);
+		updateQuickTools(currentQuickToolsDLPath, true);
+	}
+
+	@Override
+	public void contentsChanged(ListDataEvent e)
+	{
+		log.warn("contentsChanged");
+		
+		WORKER.schedule(() -> {
+			updateQuickTools(currentQuickToolsDLPath, true);
+		}, 500, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void fileFolderCreated(FileEvent fe)
+	{
+		//log.debug("fileFolderCreated", e);
+	}
+
+	@Override
+	public void fileDataCreated(FileEvent fe)
+	{
+		//log.debug("fileDataCreated", e);
+	}
+
+	@Override
+	public void fileChanged(FileEvent fe)
+	{
+		log.warn("fileChanged");
+		
+		WORKER.schedule(() -> {
+			updateQuickTools(currentQuickToolsDLPath, true);
+		}, 500, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void fileDeleted(FileEvent fe)
+	{
+		//log.debug("fileDeleted", e);
+	}
+
+	@Override
+	public void fileRenamed(FileRenameEvent fre)
+	{
+		//log.debug("fileRenamed", e);
+	}
+
+	@Override
+	public void fileAttributeChanged(FileAttributeEvent fae)
+	{
+		//log.debug("fileAttributeChanged");
+	}
 }

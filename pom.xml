@@ -83,6 +83,26 @@
 		</dependency>
 		<dependency>
 			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-api-progress</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-modules-java-source</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-modules-queries</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
+			<artifactId>org-netbeans-modules-java-source-base</artifactId>
+			<version>RELEASE160</version>
+		</dependency>
+		<dependency>
+			<groupId>org.netbeans.api</groupId>
 			<artifactId>org-netbeans-modules-projectapi</artifactId>
 			<version>RELEASE160</version>
 		</dependency>
