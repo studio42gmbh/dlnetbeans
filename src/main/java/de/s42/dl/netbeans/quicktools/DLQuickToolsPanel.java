@@ -138,26 +138,21 @@ public class DLQuickToolsPanel extends JPanel implements PropertyChangeListener,
 		WORKER.execute(() -> {
 
 			// Retrieve quick-tool.dl
-			Optional<Path> optQuickToolsDLPath = FileObjectHelper.resolveTraversedRequiredDl(path, QUICK_TOOLS_DL_NAME);
+			Path quickToolsDLPath = FileObjectHelper.resolveTraversedRequiredDl(path, QUICK_TOOLS_DL_NAME).orElse(null);
 
-			// If a path was found -> Load new quick tools
-			if (optQuickToolsDLPath.isPresent()) {
-
-				Path quickToolsDLPath = optQuickToolsDLPath.orElseThrow();
-				updateQuickTools(quickToolsDLPath, false);
-			} // Otherwise display empty info
-			else {
-				updatePanelContent(new JLabel("No quicktools found for this file/folder"));
-				currentQuickToolsDLPath = null;
-			}
+			updateQuickTools(quickToolsDLPath, false);
 		});
 	}
 
 	protected void updateQuickTools(Path newToolsDLPath, boolean force)
 	{
-		assert newToolsDLPath != null;
-
 		if (!force && Objects.equals(currentQuickToolsDLPath, newToolsDLPath)) {
+			return;
+		}
+		
+		if (newToolsDLPath  == null) {
+			updatePanelContent(new JLabel("No quicktools found for this file/folder"));
+			currentQuickToolsDLPath = null;
 			return;
 		}
 

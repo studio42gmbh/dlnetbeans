@@ -29,7 +29,9 @@ import de.s42.dl.netbeans.semantic.cache.DLSemanticCache;
 import de.s42.base.strings.StringHelper;
 import de.s42.dl.core.BaseDLCore;
 import de.s42.dl.core.DLCoreResolver;
+import de.s42.dl.core.resolvers.FileCoreResolver;
 import de.s42.dl.exceptions.InvalidModule;
+import de.s42.dl.exceptions.InvalidValue;
 import de.s42.dl.netbeans.semantic.cache.DLSemanticCacheNode;
 import de.s42.dl.netbeans.semantic.model.*;
 import de.s42.dl.netbeans.syntax.DLParserResult;
@@ -300,11 +302,17 @@ public class DLSemanticParser extends DLParserBaseListener
 
 			String resolvedModuleId = resolver.resolveModuleId(core, moduleId);
 
-			// Just immediatly parse the required module if it has not been parsed already
+			// Just immediately parse the required module if it has not been parsed already
 			if (!CACHE.hasCacheNode(resolvedModuleId)) {
 
 				String content = resolver.getContent(core, resolvedModuleId, null);
 				DLParserResult result = new DLParserResult(parserResult.getSnapshot());
+
+				// Add dir mapping before parsing if it is a file resolver (mimics file resolver strat)
+				if (resolver instanceof FileCoreResolver) {
+					Path modulePath = Path.of(resolvedModuleId);
+					core.getPathResolver().addResolveDirectory(modulePath.getParent());
+				}
 
 				DLSyntaxParser.parseContent(
 					result,
@@ -312,6 +320,12 @@ public class DLSemanticParser extends DLParserBaseListener
 					content,
 					core
 				);
+
+				// Remove mapping again after parsing
+				if (resolver instanceof FileCoreResolver) {
+					Path modulePath = Path.of(resolvedModuleId);
+					core.getPathResolver().removeResolveDirectory(modulePath.getParent());
+				}
 			}
 
 			// Make sure inclusion from data context are put right at the start of this content
@@ -322,7 +336,7 @@ public class DLSemanticParser extends DLParserBaseListener
 			}
 
 			// @todo if the referenced cache node contains errors it might be nice to add them here to signal the user the ref has errors			
-		} catch (InvalidModule | IOException ex) {
+		} catch (InvalidValue | InvalidModule | IOException ex) {
 			parserResult.addError("Module " + moduleId + " could not get parsed - " + ex.getMessage(), locationContext);
 			log.error(ex);
 		}
