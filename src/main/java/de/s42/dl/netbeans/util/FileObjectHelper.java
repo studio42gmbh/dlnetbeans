@@ -123,6 +123,13 @@ public final class FileObjectHelper
 		return new BufferedTokenStream(lexer);
 	}
 
+	public static DLModule parseModule(Path modulePath) throws DLException
+	{
+		assert modulePath != null;
+
+		return parseModule(modulePath.toAbsolutePath().normalize().toString(), null);
+	}
+
 	public static DLModule parseModule(String moduleId) throws DLException
 	{
 		assert moduleId != null;

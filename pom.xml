@@ -256,5 +256,10 @@
 			<artifactId>org-openide-dialogs</artifactId>
 			<version>RELEASE160</version>
 		</dependency>
+	 <dependency>
+	  <groupId>org.netbeans.api</groupId>
+	  <artifactId>org-netbeans-modules-settings</artifactId>
+	  <version>RELEASE160</version>
+	 </dependency>
 	</dependencies>
 </project>
