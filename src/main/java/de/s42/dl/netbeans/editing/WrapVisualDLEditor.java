@@ -131,6 +131,6 @@ public class WrapVisualDLEditor extends AbstractBinding<WrapVisualDLEditor, DLMo
 			return Optional.empty();
 		}
 
-		return Optional.of(optModule.orElseThrow().getType().getCore());
+		return Optional.of(optModule.orElseThrow().getCore());
 	}
 }
